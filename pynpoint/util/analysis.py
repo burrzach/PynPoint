@@ -278,7 +278,12 @@ def fake_planet(images: np.ndarray,
     numpy.ndarray
         Images with artificial planet injected.
     """
-
+    if len(parang) != images.shape[0] and len(parang) == 1:
+        parang = parang * np.ones(images.shape[0])
+    else:
+        raise ValueError(f'The number of parang values ({len(parang)}) should be equal to the '
+                          f'number of images ({images.shape[0]}) or 1.')
+    
     sep = position[0]
     ang = np.radians(position[1] + 90. - parang)
 
