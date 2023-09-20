@@ -137,10 +137,15 @@ module = FakePlanetModule(name_in='inject',
                           magnitude=5.)
 pipeline.add_module(module)
 
+module = ReshapeModule(name_in='shape_up_science',
+                        image_in_tag='fake',
+                        image_out_tag='fake_resize',
+                        shape=(39,1,290,290))
+pipeline.add_module(module)
 
 #mask psf
 module = PSFpreparationModule(name_in='prep',
-                              image_in_tag='fake',
+                              image_in_tag='fake_resize',
                               image_out_tag='prep',
                               mask_out_tag=None,
                               norm=False,
