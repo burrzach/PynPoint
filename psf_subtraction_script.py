@@ -24,6 +24,8 @@ from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, Wavelengt
 from pynpoint import FitsWritingModule, FakePlanetModule, AddLinesModule
 from pynpoint.core.processing import ProcessingModule
 
+folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\YSES_IFU\\2nd_epoch\\2023-07-26-1\\"
+#folder = "/data/zburr/yses_ifu/2nd_epoch/processed/2023-07-26-1/products/"
 
 #make module to reshape arrays to drop extra dimension
 class ReshapeModule(ProcessingModule):
@@ -56,8 +58,6 @@ class ReshapeModule(ProcessingModule):
 
         self.m_out_port.close_port()
 
-
-folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\YSES_IFU\\2nd_epoch\\2023-07-26-1\\"
 
 #initialize pipeline object
 pipeline = Pypeline(working_place_in=folder,
