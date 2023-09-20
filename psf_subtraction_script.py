@@ -143,7 +143,7 @@ module = ReshapeModule(name_in='shape_up_science',
                         shape=(39,1,290,290))
 pipeline.add_module(module)
 
-#mask psf
+#prepare subtraction
 module = PSFpreparationModule(name_in='prep',
                               image_in_tag='fake_resize',
                               image_out_tag='prep',
@@ -154,7 +154,12 @@ module = PSFpreparationModule(name_in='prep',
                               edge_size=None)
 pipeline.add_module(module)
 
-#prepare subtraction
+module = WavelengthReadingModule(name_in='wavelength2',
+                                 data_tag='prep',
+                                 file_name=folder+'wavelength.fits')
+pipeline.add_module(module)
+
+#perform subtraction
 module = PcaPsfSubtractionModule(pca_numbers=([10, ]),
                                  name_in='pca',
                                  images_in_tag='prep',
