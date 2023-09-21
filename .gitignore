@@ -47,3 +47,8 @@ docs/tutorials/.ipynb_checkpoints
 docs/tutorials/*.fits
 docs/tutorials/*.dat
 docs/tutorials/*.npy
+
+# Illegal files in data folder
+*:*
+*_database.hdf5
+
