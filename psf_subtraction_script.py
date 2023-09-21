@@ -21,7 +21,7 @@ import urllib
 import matplotlib.pyplot as plt
 import numpy as np
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule, PSFpreparationModule, PcaPsfSubtractionModule
-from pynpoint import FitsWritingModule, FakePlanetModule, AddLinesModule, RemoveFramesModule
+from pynpoint import FitsWritingModule, FakePlanetModule, AddLinesModule, RemoveFramesModule, StarExtractionModule
 from pynpoint.core.processing import ProcessingModule
 
 #folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\2023-07-26-1\\"
@@ -84,70 +84,77 @@ module = WavelengthReadingModule(name_in='wavelength',
 pipeline.add_module(module)
 
 
-#Read in psf
-module = FitsReadingModule(name_in='readpsf',
-                           image_tag='psf',
-                           filenames=[folder+'psf_cube.fits'],
-                           input_dir=None,
-                           ifs_data=True)
-pipeline.add_module(module)
+# #Read in psf
+# module = FitsReadingModule(name_in='readpsf',
+#                            image_tag='psf',
+#                            filenames=[folder+'psf_cube.fits'],
+#                            input_dir=None,
+#                            ifs_data=True)
+# pipeline.add_module(module)
 
-module = ParangReadingModule(name_in='parangpsf',
-                             data_tag='psf',
-                             file_name=folder+'psf_derot.fits')
-pipeline.add_module(module)
+# module = ParangReadingModule(name_in='parangpsf',
+#                              data_tag='psf',
+#                              file_name=folder+'psf_derot.fits')
+# pipeline.add_module(module)
 
-module = WavelengthReadingModule(name_in='wavelengthpsf',
-                                 data_tag='psf',
-                                 file_name=folder+'wavelength.fits')
-pipeline.add_module(module)
-
-
-#Prepare psf for injecting as fake planet
-#reshape to 3D
-module = ReshapeModule(name_in='shape_down',
-                       image_in_tag='psf',
-                       image_out_tag='psf3D',
-                       shape=(39,80,80))
-pipeline.add_module(module)
-
-#select just least noisy frame
-module = RemoveFramesModule(name_in='slice_psf', 
-                            image_in_tag='psf3D', 
-                            selected_out_tag='other_psf', 
-                            removed_out_tag='planet', 
-                            frames=[25])
-pipeline.add_module(module)
-
-#mask out noise
-module = PSFpreparationModule(name_in='maskpsf', 
-                              image_in_tag='planet', 
-                              image_out_tag='masked_planet',
-                              cent_size=None,
-                              edge_size=0.5)
-pipeline.add_module(module)
-
-#pad to get correct shape
-module = AddLinesModule(name_in='pad', 
-                        image_in_tag='masked_planet', 
-                        image_out_tag='psf_resize', 
-                        lines=(105,105,105,105))
-pipeline.add_module(module)
+# module = WavelengthReadingModule(name_in='wavelengthpsf',
+#                                  data_tag='psf',
+#                                  file_name=folder+'wavelength.fits')
+# pipeline.add_module(module)
 
 
-#Add in fake planet
+# #Prepare psf for injecting as fake planet
+# #reshape to 3D
+# module = ReshapeModule(name_in='shape_down',
+#                        image_in_tag='psf',
+#                        image_out_tag='psf3D',
+#                        shape=(39,80,80))
+# pipeline.add_module(module)
+# 
+# #select just least noisy frame
+# module = RemoveFramesModule(name_in='slice_psf', 
+#                             image_in_tag='psf3D', 
+#                             selected_out_tag='other_psf', 
+#                             removed_out_tag='planet', 
+#                             frames=[25])
+# pipeline.add_module(module)
+# 
+# #mask out noise
+# module = PSFpreparationModule(name_in='maskpsf', 
+#                               image_in_tag='planet', 
+#                               image_out_tag='masked_planet',
+#                               cent_size=None,
+#                               edge_size=0.5)
+# pipeline.add_module(module)
+# 
+# #pad to get correct shape
+# module = AddLinesModule(name_in='pad', 
+#                         image_in_tag='masked_planet', 
+#                         image_out_tag='psf_resize', 
+#                         lines=(105,105,105,105))
+# pipeline.add_module(module)
+
+#Crop planet from image to use as fake planet
 module = ReshapeModule(name_in='shape_down_science',
                        image_in_tag='science',
                        image_out_tag='science3D',
                        shape=(39,290,290))
 pipeline.add_module(module)
 
+module = StarExtractionModule(name_in='extract_planet', 
+                              image_in_tag='science3D', 
+                              image_out_tag='planet',
+                              image_size=0.1,
+                              fwhm_star=0.2)
+pipeline.add_module(module)
+
+#Add in fake planet
 module = FakePlanetModule(name_in='inject', 
                           image_in_tag='science3D', 
                           psf_in_tag='psf_resize', 
                           image_out_tag='fake', 
                           position=(1.5,90), 
-                          magnitude=4.)
+                          magnitude=0.)
 pipeline.add_module(module)
 
 module = ReshapeModule(name_in='shape_up_science',
