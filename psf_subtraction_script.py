@@ -124,7 +124,7 @@ module = PSFpreparationModule(name_in='maskpsf',
                               image_in_tag='planet', 
                               image_out_tag='masked_planet',
                               cent_size=None,
-                              edge_size=0.05)
+                              edge_size=0.75)
 pipeline.add_module(module)
 
 #pad to get correct shape
@@ -146,8 +146,8 @@ module = FakePlanetModule(name_in='inject',
                           image_in_tag='science3D', 
                           psf_in_tag='psf_resize', 
                           image_out_tag='fake', 
-                          position=(1.5,180), 
-                          magnitude=0.)
+                          position=(1.5,90), 
+                          magnitude=2.)
 pipeline.add_module(module)
 
 module = ReshapeModule(name_in='shape_up_science',
