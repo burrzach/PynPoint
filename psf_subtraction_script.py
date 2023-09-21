@@ -21,13 +21,13 @@ import urllib
 import matplotlib.pyplot as plt
 import numpy as np
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule, PSFpreparationModule, PcaPsfSubtractionModule
-from pynpoint import FitsWritingModule, FakePlanetModule, AddLinesModule
+from pynpoint import FitsWritingModule, FakePlanetModule, AddLinesModule, RemoveFramesModule
 from pynpoint.core.processing import ProcessingModule
 
 #folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\2023-07-26-1\\"
 folder = "/home/zburr/PynPoint/2023-07-26-1/"
 
-#make module to reshape arrays to drop extra dimension
+#Module to reshape arrays (to drop/add extra dimension)
 class ReshapeModule(ProcessingModule):
 
     def __init__(self,
@@ -59,12 +59,13 @@ class ReshapeModule(ProcessingModule):
         self.m_out_port.close_port()
 
 
-#initialize pipeline object
+#Initialize pipeline object
 pipeline = Pypeline(working_place_in=folder,
                     input_place_in  =folder,
                     output_place_in =folder)
 
-#read in science data
+
+#Read in science data
 module = FitsReadingModule(name_in='read',
                            image_tag='science',
                            filenames=[folder+'science_cube.fits'],
@@ -83,7 +84,7 @@ module = WavelengthReadingModule(name_in='wavelength',
 pipeline.add_module(module)
 
 
-#read in psf
+#Read in psf
 module = FitsReadingModule(name_in='readpsf',
                            image_tag='psf',
                            filenames=[folder+'psf_cube.fits'],
@@ -102,27 +103,38 @@ module = WavelengthReadingModule(name_in='wavelength',
 pipeline.add_module(module)
 
 
-#pad psf to make correct dimensions
+#Prepare psf for injecting as fake planet
+#reshape to 3D
 module = ReshapeModule(name_in='shape_down',
                        image_in_tag='psf',
                        image_out_tag='psf3D',
                        shape=(39,80,80))
 pipeline.add_module(module)
 
+#select just least noisy frame
+module = RemoveFramesModule(name_in='slice_psf', 
+                            image_in_tag='psf3D', 
+                            selected_out_tag='other_psf', 
+                            removed_out_tag='planet', 
+                            frames=[25])
+pipeline.add_module(module)
+
+#mask out noise
+module = PSFpreparationModule(name_in='maskpsf', 
+                              image_in_tag='planet', 
+                              image_out_tag='masked_planet',
+                              cent_size=None,
+                              edge_size=0.05)
+
+#pad to get correct shape
 module = AddLinesModule(name_in='pad', 
-                        image_in_tag='psf3D', 
+                        image_in_tag='masked_planet', 
                         image_out_tag='psf_resize', 
                         lines=(105,105,105,105))
 pipeline.add_module(module)
 
-# module = ReshapeModule(name_in='shape_up',
-#                        image_in_tag='psf_resize',
-#                        image_out_tag='psf_resize',
-#                        shape=(39,1,290,290))
-# pipeline.add_module(module)
 
-
-#add in fake planet
+#Add in fake planet
 module = ReshapeModule(name_in='shape_down_science',
                        image_in_tag='science',
                        image_out_tag='science3D',
@@ -143,7 +155,8 @@ module = ReshapeModule(name_in='shape_up_science',
                         shape=(39,1,290,290))
 pipeline.add_module(module)
 
-#prepare subtraction
+
+#Prepare subtraction
 module = PSFpreparationModule(name_in='prep',
                               image_in_tag='fake_resize',
                               image_out_tag='prep',
@@ -159,7 +172,8 @@ module = WavelengthReadingModule(name_in='wavelength2',
                                  file_name=folder+'wavelength.fits')
 pipeline.add_module(module)
 
-#perform subtraction
+
+#Perform subtraction
 module = PcaPsfSubtractionModule(pca_numbers=([10, ]),
                                  name_in='pca',
                                  images_in_tag='prep',
@@ -171,7 +185,7 @@ module = PcaPsfSubtractionModule(pca_numbers=([10, ]),
 pipeline.add_module(module)
 
 
-#write out data
+#Write out data
 module = FitsWritingModule(name_in='write_res',
                            data_tag='residuals',
                            file_name='2023-07-26-1_fake_residuals.fits',
@@ -185,6 +199,6 @@ module = FitsWritingModule(name_in='write_fake',
 pipeline.add_module(module)
 
 
-#run module
+#run modules
 pipeline.run()
 
