@@ -54,7 +54,7 @@ class ReshapeModule(ProcessingModule):
         self.m_out_port.set_all(reshaped)
         
         self.m_out_port.copy_attributes(self.m_in_port)
-        self.m_out_port.add_history('ReshapeModule', 'Image reshaped '+str(orig_shape)+' -> '+str(self.shape))
+        self.m_out_port.add_history('ReshapeModule', str(orig_shape)+'->'+str(self.shape))
 
         self.m_out_port.close_port()
 
@@ -134,7 +134,7 @@ module = FakePlanetModule(name_in='inject',
                           psf_in_tag='psf_resize', 
                           image_out_tag='fake', 
                           position=(0.5,270), 
-                          magnitude=5.)
+                          magnitude=2.)
 pipeline.add_module(module)
 
 module = ReshapeModule(name_in='shape_up_science',
