@@ -97,7 +97,7 @@ module = ParangReadingModule(name_in='parangpsf',
                              file_name=folder+'psf_derot.fits')
 pipeline.add_module(module)
 
-module = WavelengthReadingModule(name_in='wavelength',
+module = WavelengthReadingModule(name_in='wavelengthpsf',
                                  data_tag='psf',
                                  file_name=folder+'wavelength.fits')
 pipeline.add_module(module)
@@ -125,6 +125,7 @@ module = PSFpreparationModule(name_in='maskpsf',
                               image_out_tag='masked_planet',
                               cent_size=None,
                               edge_size=0.05)
+pipeline.add_module(module)
 
 #pad to get correct shape
 module = AddLinesModule(name_in='pad', 
@@ -165,11 +166,6 @@ module = PSFpreparationModule(name_in='prep',
                               resize=None,
                               cent_size=None,
                               edge_size=None)
-pipeline.add_module(module)
-
-module = WavelengthReadingModule(name_in='wavelength2',
-                                 data_tag='prep',
-                                 file_name=folder+'wavelength.fits')
 pipeline.add_module(module)
 
 
