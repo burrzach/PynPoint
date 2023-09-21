@@ -144,14 +144,14 @@ pipeline.add_module(module)
 module = StarExtractionModule(name_in='extract_planet', 
                               image_in_tag='science3D', 
                               image_out_tag='planet',
-                              image_size=0.2,
+                              image_size=0.7,
                               fwhm_star=0.2)
 pipeline.add_module(module)
 
 module = AddLinesModule(name_in='pad',
                         image_in_tag='planet', 
                         image_out_tag='psf_resize', 
-                        lines=(140,141,140,141))
+                        lines=(131,132,131,132))
 pipeline.add_module(module)
 
 #Add in fake planet
