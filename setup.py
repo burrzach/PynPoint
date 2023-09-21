@@ -9,7 +9,7 @@ with open('requirements.txt') as req_txt:
 
 setuptools.setup(
     name='pynpoint',
-    version='0.10.0',
+    version='0.11.0',
     description='Pipeline for processing and analysis of high-contrast imaging data',
     long_description=open('README.rst').read(),
     long_description_content_type='text/x-rst',
@@ -29,8 +29,8 @@ setuptools.setup(
         'Topic :: Scientific/Engineering :: Astronomy',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
 )
