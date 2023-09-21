@@ -174,7 +174,13 @@ pipeline.add_module(module)
 #write out data
 module = FitsWritingModule(name_in='write_res',
                            data_tag='residuals',
-                           file_name='residuals.fits',
+                           file_name='2023-07-26-1_fake_residuals.fits',
+                           output_dir=folder)
+pipeline.add_module(module)
+
+module = FitsWritingModule(name_in='write_fake', 
+                           data_tag='fake', 
+                           file_name='2023-07-26-1_fake_raw.fits',
                            output_dir=folder)
 pipeline.add_module(module)
 
