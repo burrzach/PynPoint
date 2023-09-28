@@ -24,8 +24,10 @@ from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, Wavelengt
 from pynpoint import FitsWritingModule, FakePlanetModule, AddLinesModule, RemoveFramesModule, StarExtractionModule
 from pynpoint.core.processing import ProcessingModule
 
-#folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\2023-07-26-1\\"
-folder = "/home/zburr/PynPoint/2023-07-26-1/"
+#folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\6-15-2\\"
+#psffolder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\7-26-1\\"
+folder = "/home/zburr/PynPoint/6-15-2/"
+psffolder = "/home/zburr/PynPoint/7-26-1/"
 
 #Module to reshape arrays (to drop/add extra dimension)
 class ReshapeModule(ProcessingModule):
@@ -84,23 +86,23 @@ module = WavelengthReadingModule(name_in='wavelength',
 pipeline.add_module(module)
 
 
-# #Read in psf
-# module = FitsReadingModule(name_in='readpsf',
-#                            image_tag='psf',
-#                            filenames=[folder+'psf_cube.fits'],
-#                            input_dir=None,
-#                            ifs_data=True)
-# pipeline.add_module(module)
+#Read in psf
+module = FitsReadingModule(name_in='readpsf',
+                            image_tag='psf',
+                            filenames=[psffolder+'science_cube.fits'],
+                            input_dir=None,
+                            ifs_data=True)
+pipeline.add_module(module)
 
-# module = ParangReadingModule(name_in='parangpsf',
-#                              data_tag='psf',
-#                              file_name=folder+'psf_derot.fits')
-# pipeline.add_module(module)
+module = ParangReadingModule(name_in='parangpsf',
+                              data_tag='psf',
+                              file_name=psffolder+'science_derot.fits')
+pipeline.add_module(module)
 
-# module = WavelengthReadingModule(name_in='wavelengthpsf',
-#                                  data_tag='psf',
-#                                  file_name=folder+'wavelength.fits')
-# pipeline.add_module(module)
+module = WavelengthReadingModule(name_in='wavelengthpsf',
+                                  data_tag='psf',
+                                  file_name=folder+'wavelength.fits')
+pipeline.add_module(module)
 
 
 # #Prepare psf for injecting as fake planet
@@ -135,14 +137,14 @@ pipeline.add_module(module)
 # pipeline.add_module(module)
 
 #Crop planet from image to use as fake planet
-module = ReshapeModule(name_in='shape_down_science',
-                       image_in_tag='science',
-                       image_out_tag='science3D',
+module = ReshapeModule(name_in='shape_down',
+                       image_in_tag='psf',
+                       image_out_tag='psf3D',
                        shape=(39,290,290))
 pipeline.add_module(module)
 
 module = StarExtractionModule(name_in='extract_planet', 
-                              image_in_tag='science3D', 
+                              image_in_tag='psf3D', 
                               image_out_tag='planet',
                               image_size=0.7,
                               fwhm_star=0.2)
@@ -169,6 +171,12 @@ module = PSFpreparationModule(name_in='maskpsf',
 pipeline.add_module(module)
 
 #Add in fake planet
+module = ReshapeModule(name_in='shape_down_science',
+                       image_in_tag='science',
+                       image_out_tag='science3D',
+                       shape=(39,290,290))
+pipeline.add_module(module)
+
 module = FakePlanetModule(name_in='inject', 
                           image_in_tag='science3D', 
                           psf_in_tag='masked_planet', 
@@ -211,13 +219,13 @@ pipeline.add_module(module)
 #Write out data
 module = FitsWritingModule(name_in='write_res',
                            data_tag='residuals',
-                           file_name='2023-07-26-1_fake_residuals.fits',
+                           file_name='6-15-2_fake_residuals.fits',
                            output_dir=folder)
 pipeline.add_module(module)
 
 module = FitsWritingModule(name_in='write_fake', 
                            data_tag='fake', 
-                           file_name='2023-07-26-1_fake_raw.fits',
+                           file_name='6-15-2_fake_raw.fits',
                            output_dir=folder)
 pipeline.add_module(module)
 
