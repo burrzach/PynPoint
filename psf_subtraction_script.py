@@ -154,10 +154,24 @@ module = AddLinesModule(name_in='pad',
                         lines=(131,132,131,132))
 pipeline.add_module(module)
 
+module = RemoveFramesModule(name_in='slice_psf', 
+                            image_in_tag='psf_resize', 
+                            selected_out_tag='other_psf', 
+                            removed_out_tag='planet_slice', 
+                            frames=[25])
+pipeline.add_module(module)
+
+module = PSFpreparationModule(name_in='maskpsf', 
+                              image_in_tag='planet_slice', 
+                              image_out_tag='masked_planet',
+                              cent_size=None,
+                              edge_size=0.5)
+pipeline.add_module(module)
+
 #Add in fake planet
 module = FakePlanetModule(name_in='inject', 
                           image_in_tag='science3D', 
-                          psf_in_tag='psf_resize', 
+                          psf_in_tag='masked_planet', 
                           image_out_tag='fake', 
                           position=(1.5,90), 
                           magnitude=4.)
