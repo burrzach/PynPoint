@@ -1,0 +1,231 @@
+2023-09-05 14:38:26.700	    INFO	Creating IFS reduction at path /data/zburr/yses_ifu/2nd_epoch/todo/2023-06-15-2
+2023-09-05 14:38:26.700	 WARNING	#################################################################
+2023-09-05 14:38:26.700	 WARNING	Starting in the present version of the pipeline, the default     
+2023-09-05 14:38:26.700	 WARNING	-1.75° true North offset is automatically added to the derotation
+2023-09-05 14:38:26.700	 WARNING	angles. The offset value can be modified in the configuration of 
+2023-09-05 14:38:26.700	 WARNING	the reduction:                                                   
+2023-09-05 14:38:26.700	 WARNING	                                                                 
+2023-09-05 14:38:26.700	 WARNING	  >>> reduction.config['cal_true_north'] = xxx                 
+2023-09-05 14:38:26.700	 WARNING	                                                                 
+2023-09-05 14:38:26.700	 WARNING	To avoid any issues, make sure to:                               
+2023-09-05 14:38:26.700	 WARNING	  * either reprocess data previously processed with version <1.4 
+2023-09-05 14:38:26.700	 WARNING	  * or take into account the offset in your astrometric analysis 
+2023-09-05 14:38:26.700	 WARNING	#################################################################
+2023-09-05 14:38:26.702	    INFO	Read existing reduction information
+2023-09-05 14:38:26.702	    INFO	====> Full reduction <====
+2023-09-05 14:38:26.702	    INFO	====> Init <====
+2023-09-05 14:38:26.702	    INFO	Sort raw files
+2023-09-05 14:38:26.702	    INFO	 * found 23 raw FITS files
+2023-09-05 14:38:27.067	    INFO	Extract frames information
+2023-09-05 14:38:27.629	    INFO	 * Programme ID: 110.23NY.001
+2023-09-05 14:38:27.629	    INFO	 * OB name:      2MASS-J13064012-5159386
+2023-09-05 14:38:27.630	    INFO	 * OB ID:        3394490.0
+2023-09-05 14:38:27.630	    INFO	 * Object:       2MASS J13064012-5159386
+2023-09-05 14:38:27.630	    INFO	 * RA / DEC:     13:08:3.288 / -52:07:24.77
+2023-09-05 14:38:27.630	    INFO	 * Date:         2023-06-15
+2023-09-05 14:38:27.630	    INFO	 * Instrument:   IFS
+2023-09-05 14:38:27.630	    INFO	 * Derotator:    ELEV
+2023-09-05 14:38:27.630	    INFO	 * VIS WFS mode: GAIN_1000_FREQ_600Hz
+2023-09-05 14:38:27.630	    INFO	 * IR WFS mode:  DTTS3
+2023-09-05 14:38:27.630	    INFO	 * Coronagraph:  N_ALC_YJH_S
+2023-09-05 14:38:27.630	    INFO	 * Mode:         NIROBS
+2023-09-05 14:38:27.630	    INFO	 * Filter:       OBS_YJ
+2023-09-05 14:38:27.630	    INFO	 * DIT:          64.00 sec
+2023-09-05 14:38:27.630	    INFO	 * NDIT:         4
+2023-09-05 14:38:27.630	    INFO	 * Texp:         4.27 min
+2023-09-05 14:38:27.630	    INFO	 * PA:           90.36° ==> 91.01° = 0.65°
+2023-09-05 14:38:27.630	    INFO	 * POSANG:       0.00°
+2023-09-05 14:38:27.630	    INFO	File association for calibrations
+2023-09-05 14:38:27.637	 WARNING	 * there is no sky background for science files with DIT=8.0 sec. Using a sky background instead of an internal instrumental background can usually provide a cleaner data reduction
+2023-09-05 14:38:27.638	 WARNING	There are 1 warning(s) and 0 error(s) in the classification of files
+2023-09-05 14:38:27.639	    INFO	====> Static calibrations <====
+2023-09-05 14:38:27.639	    INFO	Darks and backgrounds
+2023-09-05 14:38:27.641	    INFO	 * DARK with DIT=1.65 sec (2 files)
+2023-09-05 14:38:32.317	    INFO	 * DARK,BACKGROUND with DIT=64.00 sec (1 files)
+2023-09-05 14:38:36.638	    INFO	 * DARK,BACKGROUND with DIT=8.00 sec (1 files)
+2023-09-05 14:38:41.578	    INFO	 * SKY with DIT=64.00 sec (3 files)
+2023-09-05 14:38:43.380	    INFO	Detector flats
+2023-09-05 14:38:43.396	    INFO	 * flat for wavelength 0 nm (filter CAL_BB_2, lamp 5)
+2023-09-05 14:39:15.856	    INFO	 * flat for wavelength 1020 nm (filter CAL_NB1_1, lamp 1)
+2023-09-05 14:39:42.321	    INFO	 * flat for wavelength 1230 nm (filter CAL_NB2_1, lamp 2)
+2023-09-05 14:40:09.017	    INFO	 * flat for wavelength 1300 nm (filter CAL_NB3_1, lamp 3)
+2023-09-05 14:40:35.476	    INFO	 * flat for wavelength 1550 nm (filter CAL_NB4_2, lamp 4)
+2023-09-05 14:40:35.483	    INFO	Microspectra positions
+2023-09-05 14:40:40.244	    INFO	Wavelength calibration
+2023-09-05 14:41:33.423	    INFO	Integral-field unit flat
+2023-09-05 14:41:39.153	    INFO	====> Science pre-processing <====
+2023-09-05 14:41:39.154	    INFO	Pre-process science files
+2023-09-05 14:41:39.271	    INFO	1 files of type OBJECT,CENTER with DIT=64.0 sec
+2023-09-05 14:41:39.272	    INFO	   ==> found 1 corresponding SKY file
+2023-09-05 14:41:39.290	    INFO	 * file 1/1: SPHER.2023-06-15T04:53:11.704, NDIT=1
+2023-09-05 14:41:39.290	    INFO	   ==> read data
+2023-09-05 14:41:39.303	    INFO	   ==> collapse: mean (1 -> 1 frame, 0 dropped)
+2023-09-05 14:41:39.365	    INFO	   ==> collapse frames information
+2023-09-05 14:41:39.471	    INFO	   ==> subtract background
+2023-09-05 14:41:39.520	    INFO	   ==> correct bad pixels
+2023-09-05 14:41:47.960	    INFO	   ==> correct spectral crosstalk
+2023-09-05 14:41:56.785	    INFO	1 files of type OBJECT,FLUX with DIT=8.0 sec
+2023-09-05 14:41:56.786	    INFO	   ==> found 1 corresponding DARK,BACKGROUND file
+2023-09-05 14:41:56.796	    INFO	 * file 1/1: SPHER.2023-06-15T04:51:19.390, NDIT=4
+2023-09-05 14:41:56.796	    INFO	   ==> read data
+2023-09-05 14:41:56.805	    INFO	   ==> collapse: mean (4 -> 1 frame, 0 dropped)
+2023-09-05 14:41:57.133	    INFO	   ==> collapse frames information
+2023-09-05 14:41:57.163	    INFO	   ==> subtract background
+2023-09-05 14:41:57.226	    INFO	   ==> correct bad pixels
+2023-09-05 14:42:06.190	    INFO	   ==> correct spectral crosstalk
+2023-09-05 14:42:15.039	    INFO	1 files of type OBJECT with DIT=64.0 sec
+2023-09-05 14:42:15.040	    INFO	   ==> found 1 corresponding SKY file
+2023-09-05 14:42:15.046	    INFO	 * file 1/1: SPHER.2023-06-15T04:54:30.753, NDIT=4
+2023-09-05 14:42:15.046	    INFO	   ==> read data
+2023-09-05 14:42:15.055	    INFO	   ==> collapse: mean (4 -> 1 frame, 0 dropped)
+2023-09-05 14:42:15.249	    INFO	   ==> collapse frames information
+2023-09-05 14:42:15.280	    INFO	   ==> subtract background
+2023-09-05 14:42:15.286	    INFO	   ==> correct bad pixels
+2023-09-05 14:42:24.049	    INFO	   ==> correct spectral crosstalk
+2023-09-05 14:42:32.914	    INFO	Pre-process wavelength calibration file
+2023-09-05 14:42:33.028	    INFO	 * SPHER.2023-06-15T17:32:02.596
+2023-09-05 14:42:33.028	    INFO	   ==> read data
+2023-09-05 14:42:33.034	    INFO	   ==> collapse: mean
+2023-09-05 14:42:33.969	    INFO	   ==> subtract background
+2023-09-05 14:42:34.169	    INFO	   ==> correct bad pixels
+2023-09-05 14:42:36.646	    INFO	   ==> correct spectral crosstalk
+2023-09-05 14:42:45.511	    INFO	Create science cubes
+2023-09-05 14:42:45.516	    INFO	 * found 4 pre-processed files
+2023-09-05 14:42:45.520	    INFO	 * starting esorex
+2023-09-05 14:43:03.946	    INFO	 * post-processing files
+2023-09-05 14:43:04.254	    INFO	====> Science processing <====
+2023-09-05 14:43:04.254	    INFO	Wavelength recalibration
+2023-09-05 14:43:04.258	    INFO	 * extracting calibrated wavelength
+2023-09-05 14:43:04.265	    INFO	 * fitting waffle spots
+2023-09-05 14:43:04.279	    INFO	   ==> wave  1/39 ( 950 nm)
+2023-09-05 14:43:05.261	    INFO	   ==> wave  2/39 ( 960 nm)
+2023-09-05 14:43:05.908	    INFO	   ==> wave  3/39 ( 971 nm)
+2023-09-05 14:43:06.529	    INFO	   ==> wave  4/39 ( 981 nm)
+2023-09-05 14:43:07.210	    INFO	   ==> wave  5/39 ( 992 nm)
+2023-09-05 14:43:07.798	    INFO	   ==> wave  6/39 (1002 nm)
+2023-09-05 14:43:08.365	    INFO	   ==> wave  7/39 (1013 nm)
+2023-09-05 14:43:09.004	    INFO	   ==> wave  8/39 (1023 nm)
+2023-09-05 14:43:09.560	    INFO	   ==> wave  9/39 (1033 nm)
+2023-09-05 14:43:10.179	    INFO	   ==> wave 10/39 (1044 nm)
+2023-09-05 14:43:10.739	    INFO	   ==> wave 11/39 (1054 nm)
+2023-09-05 14:43:11.361	    INFO	   ==> wave 12/39 (1065 nm)
+2023-09-05 14:43:11.928	    INFO	   ==> wave 13/39 (1075 nm)
+2023-09-05 14:43:12.499	    INFO	   ==> wave 14/39 (1085 nm)
+2023-09-05 14:43:13.136	    INFO	   ==> wave 15/39 (1096 nm)
+2023-09-05 14:43:13.681	    INFO	   ==> wave 16/39 (1106 nm)
+2023-09-05 14:43:14.321	    INFO	   ==> wave 17/39 (1117 nm)
+2023-09-05 14:43:14.863	    INFO	   ==> wave 18/39 (1127 nm)
+2023-09-05 14:43:15.413	    INFO	   ==> wave 19/39 (1138 nm)
+2023-09-05 14:43:16.060	    INFO	   ==> wave 20/39 (1148 nm)
+2023-09-05 14:43:16.595	    INFO	   ==> wave 21/39 (1158 nm)
+2023-09-05 14:43:17.231	    INFO	   ==> wave 22/39 (1169 nm)
+2023-09-05 14:43:17.774	    INFO	   ==> wave 23/39 (1179 nm)
+2023-09-05 14:43:18.327	    INFO	   ==> wave 24/39 (1190 nm)
+2023-09-05 14:43:18.973	    INFO	   ==> wave 25/39 (1200 nm)
+2023-09-05 14:43:19.529	    INFO	   ==> wave 26/39 (1211 nm)
+2023-09-05 14:43:20.168	    INFO	   ==> wave 27/39 (1221 nm)
+2023-09-05 14:43:20.712	    INFO	   ==> wave 28/39 (1231 nm)
+2023-09-05 14:43:21.317	    INFO	   ==> wave 29/39 (1242 nm)
+2023-09-05 14:43:21.850	    INFO	   ==> wave 30/39 (1252 nm)
+2023-09-05 14:43:22.394	    INFO	   ==> wave 31/39 (1263 nm)
+2023-09-05 14:43:23.049	    INFO	   ==> wave 32/39 (1273 nm)
+2023-09-05 14:43:23.597	    INFO	   ==> wave 33/39 (1283 nm)
+2023-09-05 14:43:24.221	    INFO	   ==> wave 34/39 (1294 nm)
+2023-09-05 14:43:24.778	    INFO	   ==> wave 35/39 (1304 nm)
+2023-09-05 14:43:25.345	    INFO	   ==> wave 36/39 (1315 nm)
+2023-09-05 14:43:25.976	    INFO	   ==> wave 37/39 (1325 nm)
+2023-09-05 14:43:26.534	    INFO	   ==> wave 38/39 (1336 nm)
+2023-09-05 14:43:27.205	    INFO	   ==> wave 39/39 (1346 nm)
+2023-09-05 14:43:29.902	    INFO	 * recalibration
+2023-09-05 14:43:29.946	    INFO	   ==> difference with calibrated wavelength: min=0.0 nm, max=12.3 nm
+2023-09-05 14:43:29.946	    INFO	 * saving
+2023-09-05 14:43:30.255	    INFO	Star centers determination
+2023-09-05 14:43:30.256	    INFO	 * OBJECT,FLUX: SPHER.2023-06-15T04:51:19.390
+2023-09-05 14:43:30.268	    INFO	   ==> wave  1/39 ( 950 nm)
+2023-09-05 14:43:30.289	    INFO	   ==> wave  2/39 ( 960 nm)
+2023-09-05 14:43:30.328	    INFO	   ==> wave  3/39 ( 971 nm)
+2023-09-05 14:43:30.365	    INFO	   ==> wave  4/39 ( 981 nm)
+2023-09-05 14:43:30.387	    INFO	   ==> wave  5/39 ( 992 nm)
+2023-09-05 14:43:30.400	    INFO	   ==> wave  6/39 (1002 nm)
+2023-09-05 14:43:30.437	    INFO	   ==> wave  7/39 (1013 nm)
+2023-09-05 14:43:30.475	    INFO	   ==> wave  8/39 (1023 nm)
+2023-09-05 14:43:30.490	    INFO	   ==> wave  9/39 (1033 nm)
+2023-09-05 14:43:30.528	    INFO	   ==> wave 10/39 (1044 nm)
+2023-09-05 14:43:30.567	    INFO	   ==> wave 11/39 (1054 nm)
+2023-09-05 14:43:30.582	    INFO	   ==> wave 12/39 (1065 nm)
+2023-09-05 14:43:30.620	    INFO	   ==> wave 13/39 (1075 nm)
+2023-09-05 14:43:30.657	    INFO	   ==> wave 14/39 (1085 nm)
+2023-09-05 14:43:30.688	    INFO	   ==> wave 15/39 (1096 nm)
+2023-09-05 14:43:30.715	    INFO	   ==> wave 16/39 (1106 nm)
+2023-09-05 14:43:30.733	    INFO	   ==> wave 17/39 (1117 nm)
+2023-09-05 14:43:30.761	    INFO	   ==> wave 18/39 (1127 nm)
+2023-09-05 14:43:30.781	    INFO	   ==> wave 19/39 (1138 nm)
+2023-09-05 14:43:30.818	    INFO	   ==> wave 20/39 (1148 nm)
+2023-09-05 14:43:30.837	    INFO	   ==> wave 21/39 (1158 nm)
+2023-09-05 14:43:30.858	    INFO	   ==> wave 22/39 (1169 nm)
+2023-09-05 14:43:30.881	    INFO	   ==> wave 23/39 (1179 nm)
+2023-09-05 14:43:30.918	    INFO	   ==> wave 24/39 (1190 nm)
+2023-09-05 14:43:30.956	    INFO	   ==> wave 25/39 (1200 nm)
+2023-09-05 14:43:30.987	    INFO	   ==> wave 26/39 (1211 nm)
+2023-09-05 14:43:31.019	    INFO	   ==> wave 27/39 (1221 nm)
+2023-09-05 14:43:31.035	    INFO	   ==> wave 28/39 (1231 nm)
+2023-09-05 14:43:31.056	    INFO	   ==> wave 29/39 (1242 nm)
+2023-09-05 14:43:31.074	    INFO	   ==> wave 30/39 (1252 nm)
+2023-09-05 14:43:31.096	    INFO	   ==> wave 31/39 (1263 nm)
+2023-09-05 14:43:31.127	    INFO	   ==> wave 32/39 (1273 nm)
+2023-09-05 14:43:31.151	    INFO	   ==> wave 33/39 (1283 nm)
+2023-09-05 14:43:31.169	    INFO	   ==> wave 34/39 (1294 nm)
+2023-09-05 14:43:31.206	    INFO	   ==> wave 35/39 (1304 nm)
+2023-09-05 14:43:31.239	    INFO	   ==> wave 36/39 (1315 nm)
+2023-09-05 14:43:31.262	    INFO	   ==> wave 37/39 (1325 nm)
+2023-09-05 14:43:31.292	    INFO	   ==> wave 38/39 (1336 nm)
+2023-09-05 14:43:31.322	    INFO	   ==> wave 39/39 (1346 nm)
+2023-09-05 14:43:31.349	    INFO	   ==> found 2 outliers. Will replace them with a linear fit.
+2023-09-05 14:43:35.484	    INFO	 * OBJECT,CENTER: SPHER.2023-06-15T04:53:11.704
+2023-09-05 14:43:35.492	    INFO	   ==> wave  1/39 ( 950 nm)
+2023-09-05 14:43:36.021	    INFO	   ==> wave  2/39 ( 960 nm)
+2023-09-05 14:43:36.633	    INFO	   ==> wave  3/39 ( 971 nm)
+2023-09-05 14:43:37.173	    INFO	   ==> wave  4/39 ( 981 nm)
+2023-09-05 14:43:37.780	    INFO	   ==> wave  5/39 ( 992 nm)
+2023-09-05 14:43:38.321	    INFO	   ==> wave  6/39 (1002 nm)
+2023-09-05 14:43:38.957	    INFO	   ==> wave  7/39 (1013 nm)
+2023-09-05 14:43:39.498	    INFO	   ==> wave  8/39 (1023 nm)
+2023-09-05 14:43:40.039	    INFO	   ==> wave  9/39 (1033 nm)
+2023-09-05 14:43:40.656	    INFO	   ==> wave 10/39 (1044 nm)
+2023-09-05 14:43:41.198	    INFO	   ==> wave 11/39 (1054 nm)
+2023-09-05 14:43:41.835	    INFO	   ==> wave 12/39 (1065 nm)
+2023-09-05 14:43:42.399	    INFO	   ==> wave 13/39 (1075 nm)
+2023-09-05 14:43:42.966	    INFO	   ==> wave 14/39 (1085 nm)
+2023-09-05 14:43:43.615	    INFO	   ==> wave 15/39 (1096 nm)
+2023-09-05 14:43:44.178	    INFO	   ==> wave 16/39 (1106 nm)
+2023-09-05 14:43:44.816	    INFO	   ==> wave 17/39 (1117 nm)
+2023-09-05 14:43:45.356	    INFO	   ==> wave 18/39 (1127 nm)
+2023-09-05 14:43:45.894	    INFO	   ==> wave 19/39 (1138 nm)
+2023-09-05 14:43:46.557	    INFO	   ==> wave 20/39 (1148 nm)
+2023-09-05 14:43:47.107	    INFO	   ==> wave 21/39 (1158 nm)
+2023-09-05 14:43:47.759	    INFO	   ==> wave 22/39 (1169 nm)
+2023-09-05 14:43:48.321	    INFO	   ==> wave 23/39 (1179 nm)
+2023-09-05 14:43:48.980	    INFO	   ==> wave 24/39 (1190 nm)
+2023-09-05 14:43:49.542	    INFO	   ==> wave 25/39 (1200 nm)
+2023-09-05 14:43:50.079	    INFO	   ==> wave 26/39 (1211 nm)
+2023-09-05 14:43:50.760	    INFO	   ==> wave 27/39 (1221 nm)
+2023-09-05 14:43:51.302	    INFO	   ==> wave 28/39 (1231 nm)
+2023-09-05 14:43:51.926	    INFO	   ==> wave 29/39 (1242 nm)
+2023-09-05 14:43:52.457	    INFO	   ==> wave 30/39 (1252 nm)
+2023-09-05 14:43:52.997	    INFO	   ==> wave 31/39 (1263 nm)
+2023-09-05 14:43:53.633	    INFO	   ==> wave 32/39 (1273 nm)
+2023-09-05 14:43:54.165	    INFO	   ==> wave 33/39 (1283 nm)
+2023-09-05 14:43:54.799	    INFO	   ==> wave 34/39 (1294 nm)
+2023-09-05 14:43:55.375	    INFO	   ==> wave 35/39 (1304 nm)
+2023-09-05 14:43:56.020	    INFO	   ==> wave 36/39 (1315 nm)
+2023-09-05 14:43:56.584	    INFO	   ==> wave 37/39 (1325 nm)
+2023-09-05 14:43:57.138	    INFO	   ==> wave 38/39 (1336 nm)
+2023-09-05 14:43:57.794	    INFO	   ==> wave 39/39 (1346 nm)
+2023-09-05 14:44:00.356	    INFO	Combine science data
+2023-09-05 14:44:00.359	    INFO	 * OBJECT,FLUX data
+2023-09-05 14:44:00.359	    INFO	   ==> file 1/1: SPHER.2023-06-15T04:51:19.390, DIT #0
+2023-09-05 14:44:00.922	    INFO	 * OBJECT,CENTER data
+2023-09-05 14:44:00.924	    INFO	   ==> file 1/1: SPHER.2023-06-15T04:53:11.704, DIT #0
+2023-09-05 14:44:02.339	    INFO	 * OBJECT data
+2023-09-05 14:44:02.343	    INFO	   ==> file 1/1: SPHER.2023-06-15T04:54:30.753, DIT #0
+2023-09-05 14:44:03.725	    INFO	====> Clean-up <====
