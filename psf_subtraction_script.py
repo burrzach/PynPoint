@@ -241,13 +241,13 @@ pipeline.run()
 raw = pipeline.get_data('prep')
 residual = pipeline.get_data('residuals')
 
-pos_raw = polar_to_cartesian(raw, 1.5, 90)
-pos_resid = polar_to_cartesian(residual, 1.5, 90)
+#pos_raw = polar_to_cartesian(raw, 1.5, 90)
+#pos_resid = polar_to_cartesian(residual, 1.5, 90)
 
 module = FalsePositiveModule(name_in='measure_raw',
                              image_in_tag='fake',
                              snr_out_tag='raw_snr',
-                             position=pos_raw,
+                             position=(178,187),
                              aperture=0.2,
                              ignore=False,
                              optimize=True,
@@ -257,7 +257,7 @@ pipeline.add_module(module)
 module = FalsePositiveModule(name_in='measure_resid',
                              image_in_tag='residuals',
                              snr_out_tag='resid_snr',
-                             position=pos_resid,
+                             position=(90,145),
                              aperture=0.2,
                              ignore=False,
                              optimize=True,
