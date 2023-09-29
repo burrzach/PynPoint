@@ -205,7 +205,7 @@ pipeline.add_module(module)
 
 
 #Perform subtraction
-module = PcaPsfSubtractionModule(pca_numbers=([10, ]),
+module = PcaPsfSubtractionModule(pca_numbers=([20, ]),
                                  name_in='pca',
                                  images_in_tag='prep',
                                  reference_in_tag='prep',
