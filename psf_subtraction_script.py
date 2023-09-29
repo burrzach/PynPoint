@@ -5,8 +5,8 @@
 
 
 # #imports
-import os
-import sys
+#import os
+#import sys
 
 # #check for arguments
 # if len(sys.argv) > 1:
@@ -17,12 +17,15 @@ import sys
 #     raise ValueError("No dir given.")
 
 #import the rest of the modules (pynpoint import is a bit slow, so import after checking for valid path)
-import urllib
-import matplotlib.pyplot as plt
+#import urllib
+#import matplotlib.pyplot as plt
 import numpy as np
-from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule, PSFpreparationModule, PcaPsfSubtractionModule
-from pynpoint import FitsWritingModule, FakePlanetModule, AddLinesModule, RemoveFramesModule, StarExtractionModule
+from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
+    PSFpreparationModule, PcaPsfSubtractionModule, FitsWritingModule, FakePlanetModule,\
+    AddLinesModule, RemoveFramesModule, StarExtractionModule, FalsePositiveModule, TextWritingModule,\
+    AttributeWritingModule
 from pynpoint.core.processing import ProcessingModule
+from pynpoint.util.image import polar_to_cartesian
 
 #folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\6-15-2\\"
 #psffolder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\7-26-1\\"
@@ -205,7 +208,7 @@ pipeline.add_module(module)
 
 
 #Perform subtraction
-module = PcaPsfSubtractionModule(pca_numbers=([20, ]),
+module = PcaPsfSubtractionModule(pca_numbers=([5, ]),
                                  name_in='pca',
                                  images_in_tag='prep',
                                  reference_in_tag='prep',
@@ -233,3 +236,52 @@ pipeline.add_module(module)
 #run modules
 pipeline.run()
 
+
+#Measure before and after subtraction
+raw = pipeline.get_data('prep')
+residual = pipeline.get_data('residuals')
+
+pos_raw = polar_to_cartesian(raw, 1.5, 90)
+pos_resid = polar_to_cartesian(residual, 1.5, 90)
+
+module = FalsePositiveModule(name_in='measure_raw',
+                             image_in_tag='fake',
+                             snr_out_tag='raw_snr',
+                             position=pos_raw,
+                             aperture=0.2,
+                             ignore=False,
+                             optimize=True,
+                             offset=10)
+pipeline.add_module(module)
+
+module = FalsePositiveModule(name_in='measure_resid',
+                             image_in_tag='residuals',
+                             snr_out_tag='resid_snr',
+                             position=pos_resid,
+                             aperture=0.2,
+                             ignore=False,
+                             optimize=True,
+                             offset=10)
+pipeline.add_module(module)
+
+module = TextWritingModule(name_in='write_raw_snr',
+                           data_tag='raw_snr',
+                           file_name='fake_snr.txt')
+pipeline.add_module(module)
+
+module = TextWritingModule(name_in='write_resid_snr',
+                           data_tag='resid_snr',
+                           file_name='resid_snr.txt')
+pipeline.add_module(module)
+
+module = AttributeWritingModule(name_in='write_wl',
+                           data_tag='science',
+                           attribute='WAVELENGTH',
+                           file_name='fake_snr.txt')
+pipeline.add_module(module)
+
+pipeline.run_module('measure_raw')
+pipeline.run_module('measure_resid')
+pipeline.run_module('write_raw_snr')
+pipeline.run_module('write_resid_snr')
+pipeline.run_module('write_wl')
