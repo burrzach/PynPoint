@@ -25,7 +25,7 @@ from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, Wavelengt
     AddLinesModule, RemoveFramesModule, StarExtractionModule, FalsePositiveModule, TextWritingModule,\
     AttributeWritingModule
 from pynpoint.core.processing import ProcessingModule
-from pynpoint.util.image import polar_to_cartesian
+#from pynpoint.util.image import polar_to_cartesian
 
 #folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\6-15-2\\"
 #psffolder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\7-26-1\\"
@@ -283,7 +283,7 @@ pipeline.add_module(module)
 module = AttributeWritingModule(name_in='write_wl',
                            data_tag='science',
                            attribute='WAVELENGTH',
-                           file_name='fake_snr.txt')
+                           file_name='wavelength.txt')
 pipeline.add_module(module)
 
 pipeline.run_module('measure_raw')
