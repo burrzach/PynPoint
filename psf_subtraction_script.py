@@ -254,8 +254,14 @@ module = FalsePositiveModule(name_in='measure_raw',
                              offset=10)
 pipeline.add_module(module)
 
+module = ReshapeModule(name_in='shape_down_resid',
+                       image_in_tag='residuals',
+                       image_out_tag='residuals3D',
+                       shape=(39,290,290))
+pipeline.add_module(module)
+
 module = FalsePositiveModule(name_in='measure_resid',
-                             image_in_tag='residuals',
+                             image_in_tag='residuals3D',
                              snr_out_tag='resid_snr',
                              position=(90,145),
                              aperture=0.2,
