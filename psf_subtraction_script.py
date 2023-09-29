@@ -287,6 +287,7 @@ module = AttributeWritingModule(name_in='write_wl',
 pipeline.add_module(module)
 
 pipeline.run_module('measure_raw')
+pipeline.run_module('shape_down_resid')
 pipeline.run_module('measure_resid')
 pipeline.run_module('write_raw_snr')
 pipeline.run_module('write_resid_snr')
