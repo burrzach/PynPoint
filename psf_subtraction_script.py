@@ -32,6 +32,8 @@ from pynpoint.core.processing import ProcessingModule
 folder = "/home/zburr/PynPoint/6-15-2/"
 psffolder = "/home/zburr/PynPoint/7-26-1/"
 
+PC_list=[1,3,5,7,10,15,20]
+
 #Module to reshape arrays (to drop/add extra dimension)
 class ReshapeModule(ProcessingModule):
 
@@ -104,7 +106,14 @@ pipeline.add_module(module)
 
 module = WavelengthReadingModule(name_in='wavelengthpsf',
                                   data_tag='psf',
-                                  file_name=folder+'wavelength.fits')
+                                  file_name=psffolder+'wavelength.fits')
+pipeline.add_module(module)
+
+module = AttributeWritingModule(name_in='write_planet_wl', 
+                                data_tag='psf', 
+                                attribute='WAVELENGTH',
+                                file_name='wavelength.txt',
+                                output_dir=psffolder)
 pipeline.add_module(module)
 
 
@@ -207,42 +216,18 @@ module = PSFpreparationModule(name_in='prep',
 pipeline.add_module(module)
 
 
-#Perform subtraction
-module = PcaPsfSubtractionModule(pca_numbers=([5, ]),
-                                 name_in='pca',
-                                 images_in_tag='prep',
-                                 reference_in_tag='prep',
-                                 res_median_tag='residuals',
-                                 subtract_mean=False,
-                                 processing_type='SDI'
-                                 )
-pipeline.add_module(module)
-
-
-#Write out data
-module = FitsWritingModule(name_in='write_res',
-                           data_tag='residuals',
-                           file_name='6-15-2_fake_residuals.fits',
-                           output_dir=folder)
-pipeline.add_module(module)
-
+#Measure and write out raw data
 module = FitsWritingModule(name_in='write_fake', 
                            data_tag='fake', 
                            file_name='6-15-2_fake_raw.fits',
                            output_dir=folder)
 pipeline.add_module(module)
 
-
-#run modules
-pipeline.run()
-
-
-#Measure before and after subtraction
-raw = pipeline.get_data('prep')
-residual = pipeline.get_data('residuals')
-
-#pos_raw = polar_to_cartesian(raw, 1.5, 90)
-#pos_resid = polar_to_cartesian(residual, 1.5, 90)
+module = AttributeWritingModule(name_in='write_wl',
+                           data_tag='science',
+                           attribute='WAVELENGTH',
+                           file_name='wavelength.txt')
+pipeline.add_module(module)
 
 module = FalsePositiveModule(name_in='measure_raw',
                              image_in_tag='fake',
@@ -254,41 +239,71 @@ module = FalsePositiveModule(name_in='measure_raw',
                              offset=10)
 pipeline.add_module(module)
 
-module = ReshapeModule(name_in='shape_down_resid',
-                       image_in_tag='residuals',
-                       image_out_tag='residuals3D',
-                       shape=(39,290,290))
-pipeline.add_module(module)
-
-module = FalsePositiveModule(name_in='measure_resid',
-                             image_in_tag='residuals3D',
-                             snr_out_tag='resid_snr',
-                             position=(90,145),
-                             aperture=0.2,
-                             ignore=False,
-                             optimize=True,
-                             offset=10)
-pipeline.add_module(module)
-
 module = TextWritingModule(name_in='write_raw_snr',
                            data_tag='raw_snr',
                            file_name='fake_snr.txt')
 pipeline.add_module(module)
 
-module = TextWritingModule(name_in='write_resid_snr',
-                           data_tag='resid_snr',
-                           file_name='resid_snr.txt')
-pipeline.add_module(module)
 
-module = AttributeWritingModule(name_in='write_wl',
-                           data_tag='science',
-                           attribute='WAVELENGTH',
-                           file_name='wavelength.txt')
-pipeline.add_module(module)
+#run part that only needs to be done once
+pipeline.run()
 
-pipeline.run_module('measure_raw')
-pipeline.run_module('shape_down_resid')
-pipeline.run_module('measure_resid')
-pipeline.run_module('write_raw_snr')
-pipeline.run_module('write_resid_snr')
-pipeline.run_module('write_wl')
+for PC in PC_list:
+    #Perform subtraction
+    module = PcaPsfSubtractionModule(pca_numbers=([PC]),
+                                     name_in='pca',
+                                     images_in_tag='prep',
+                                     reference_in_tag='prep',
+                                     res_median_tag='residuals',
+                                     subtract_mean=False,
+                                     processing_type='SDI'
+                                     )
+    pipeline.add_module(module)
+    pipeline.run_module('pca')
+    
+    
+    #Write out data
+    module = FitsWritingModule(name_in='write_res',
+                               data_tag='residuals',
+                               file_name='6-15-2_fake_residuals_'+str(PC)+'PCs.fits',
+                               output_dir=folder)
+    pipeline.add_module(module)
+    pipeline.run_module('write_res')
+    
+    
+    #run modules
+    #pipeline.run()
+    
+    
+    #Measure before and after subtraction
+    #raw = pipeline.get_data('prep')
+    #residual = pipeline.get_data('residuals')
+    
+    #pos_raw = polar_to_cartesian(raw, 1.5, 90)
+    #pos_resid = polar_to_cartesian(residual, 1.5, 90)
+    
+    module = ReshapeModule(name_in='shape_down_resid',
+                           image_in_tag='residuals',
+                           image_out_tag='residuals3D',
+                           shape=(39,290,290))
+    pipeline.add_module(module)
+    
+    module = FalsePositiveModule(name_in='measure_resid',
+                                 image_in_tag='residuals3D',
+                                 snr_out_tag='resid_snr',
+                                 position=(90,145),
+                                 aperture=0.2,
+                                 ignore=False,
+                                 optimize=True,
+                                 offset=10)
+    pipeline.add_module(module)
+    
+    module = TextWritingModule(name_in='write_resid_snr',
+                               data_tag='resid_snr',
+                               file_name='resid_snr_'+str(PC)+'PCs.txt')
+    pipeline.add_module(module)
+
+    
+    pipeline.run_module('shape_down_resid')
+    pipeline.run_module('measure_resid')
+    pipeline.run_module('write_resid_snr')
