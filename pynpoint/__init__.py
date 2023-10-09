@@ -15,6 +15,7 @@ from pynpoint.processing.badpixel import BadPixelSigmaFilterModule, \
 
 from pynpoint.processing.basic import SubtractImagesModule, \
                                       AddImagesModule, \
+                                      AddFramesModule, \
                                       RotateImagesModule, \
                                       RepeatImagesModule
 

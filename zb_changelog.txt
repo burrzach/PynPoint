@@ -1,0 +1,2 @@
+-Made FakePlanetModule work for (3D) IFS data by allowing only one parang value for all frames, thereby inserting planet at the same position in each frame
+-Wrote a new AddFramesModule which coadds all frames of one image (such as if they are different wavelength slices)

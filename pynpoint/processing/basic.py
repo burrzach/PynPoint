@@ -161,6 +161,80 @@ class AddImagesModule(ProcessingModule):
         self.m_image_out_port.close_port()
 
 
+class AddFramesModule(ProcessingModule):
+    """
+    Pipeline module for adding together all frames of one image.
+    """
+
+    __author__ = 'Zachary Burr'
+
+    @typechecked
+    def __init__(self,
+                 name_in: str,
+                 image_in_tag: str,
+                 image_out_tag: str,
+                 scaling: float = 1.) -> None:
+        """
+        Parameters
+        ----------
+        name_in : str
+            Unique name of the module instance.
+        image_in_tag : str
+            Tag of the database entry that is read as input.
+        image_out_tag : str
+            Tag of the database entry with the added images that are written as output.
+        scaling: float
+            Additional scaling factor.
+
+        Returns
+        -------
+        NoneType
+            None
+        """
+
+        super().__init__(name_in)
+
+        self.m_image_in_port = self.add_input_port(image_in_tag)
+        self.m_image_out_port = self.add_output_port(image_out_tag)
+
+        self.m_scaling = scaling
+
+    @typechecked
+    def run(self) -> None:
+        """
+        Run method of the module. Add all frames from the image together.
+        basis.
+
+        Returns
+        -------
+        NoneType
+            None
+        """
+
+        if len(self.m_image_in_port.get_shape()) != 3:
+            raise ValueError('The input image must be 3D to allow adding frames.')
+
+        memory = self._m_config_port.get_attribute('MEMORY')
+        nimages = self.m_image_in_port.get_shape()[0]
+        frames = memory_frames(memory, nimages)
+
+        start_time = time.time()
+        
+        image = 0.*self.m_image_in_port[0]
+
+        for i, _ in enumerate(frames[:-1]):
+            progress(i, len(frames[:-1]), 'Adding frames...', start_time)
+
+            image += self.m_image_in_port[frames[i]:frames[i+1], ].sum(axis=0)
+        
+        self.m_image_out_port.append(image)
+        
+        history = f'scaling = {self.m_scaling}'
+        self.m_image_out_port.add_history('AddImagesModule', history)
+        self.m_image_out_port.copy_attributes(self.m_image_in_port)
+        self.m_image_out_port.close_port()
+
+
 class RotateImagesModule(ProcessingModule):
     """
     Pipeline module for rotating images.
