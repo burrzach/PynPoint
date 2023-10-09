@@ -60,8 +60,9 @@ class ReshapeModule(ProcessingModule):
         
         self.m_out_port.set_all(reshaped)
         
+        history = str(orig_shape)+'->'+str(self.shape)
         self.m_out_port.copy_attributes(self.m_in_port)
-        self.m_out_port.add_history('ReshapeModule', str(orig_shape)+'->'+str(self.shape))
+        self.m_out_port.add_history('ReshapeModule', history)
 
         self.m_out_port.close_port()
 

@@ -20,7 +20,7 @@ else:
 import numpy as np
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, \
     WavelengthReadingModule, PSFpreparationModule, PcaPsfSubtractionModule, \
-    FitsWritingModule, AddFramesModule
+    FitsWritingModule, AddFramesModule, RemoveFramesModule
 from pynpoint.core.processing import ProcessingModule
 
 #Module to reshape arrays (to drop/add extra dimension)
@@ -49,16 +49,18 @@ class ReshapeModule(ProcessingModule):
         
         self.m_out_port.set_all(reshaped)
         
+        history = str(orig_shape)+'->'+str(self.shape)
         self.m_out_port.copy_attributes(self.m_in_port)
-        self.m_out_port.add_history('ReshapeModule', str(orig_shape)+'->'+str(self.shape))
+        self.m_out_port.add_history('ReshapeModule', history)
 
         self.m_out_port.close_port()
 
-
+###############################################################################
 #initialize pipeline object
 pipeline = Pypeline(working_place_in=folder,
                     input_place_in  =folder,
                     output_place_in =folder)
+
 
 #read in science data
 module = FitsReadingModule(name_in='read',
@@ -90,6 +92,7 @@ module = PSFpreparationModule(name_in='prep',
                               edge_size=None)
 pipeline.add_module(module)
 
+
 #prepare subtraction
 module = PcaPsfSubtractionModule(pca_numbers=([1, ]),
                                  name_in='pca',
@@ -101,28 +104,46 @@ module = PcaPsfSubtractionModule(pca_numbers=([1, ]),
                                  )
 pipeline.add_module(module)
 
-#coadd frames
+
+#coadd raw
 module = ReshapeModule(name_in='shape_down_science',
                        image_in_tag='science',
                        image_out_tag='science3D',
                        shape=(39,290,290))
 pipeline.add_module(module)
 
-module = AddFramesModule(name_in='coadd_raw', 
-                         image_in_tag='science3D', 
+module = RemoveFramesModule(name_in='slice_science', 
+                            image_in_tag='science3D', 
+                            selected_out_tag='science_sliced', 
+                            removed_out_tag='trash', 
+                            frames=[0,1,38,39])
+pipeline.add_module(module)
+
+module = AddFramesModule(name_in='coadd_science', 
+                         image_in_tag='science_sliced', 
                          image_out_tag='coadd_raw')
 pipeline.add_module(module)
 
+
+#coadd residuals
 module = ReshapeModule(name_in='shape_down_resid',
                        image_in_tag='residuals',
                        image_out_tag='resid3D',
                        shape=(39,290,290))
 pipeline.add_module(module)
 
+module = RemoveFramesModule(name_in='slice_resid', 
+                            image_in_tag='resid3D', 
+                            selected_out_tag='resid_sliced', 
+                            removed_out_tag='trash', 
+                            frames=[0,1,38,39])
+pipeline.add_module(module)
+
 module = AddFramesModule(name_in='coadd_resid', 
-                         image_in_tag='resid3D', 
+                         image_in_tag='resid_sliced', 
                          image_out_tag='coadd_resid')
 pipeline.add_module(module)
+
 
 #write out data
 module = FitsWritingModule(name_in='write_res',
