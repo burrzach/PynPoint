@@ -249,6 +249,11 @@ pipeline.add_module(module)
 pipeline.run()
 
 for PC in PC_list:
+    if len(str(PC)) == 1:
+        PCstr = '0'+str(PC)
+    else:
+        PCstr = str(PC)
+    
     #Perform subtraction
     module = PcaPsfSubtractionModule(pca_numbers=([PC]),
                                      name_in='pca',
@@ -265,7 +270,7 @@ for PC in PC_list:
     #Write out data
     module = FitsWritingModule(name_in='write_res',
                                data_tag='residuals',
-                               file_name='6-15-2_fake_residuals_'+str(PC)+'PCs.fits',
+                               file_name='6-15-2_fake_residuals_'+PCstr+'PCs.fits',
                                output_dir=folder)
     pipeline.add_module(module)
     pipeline.run_module('write_res')
@@ -300,7 +305,7 @@ for PC in PC_list:
     
     module = TextWritingModule(name_in='write_resid_snr',
                                data_tag='resid_snr',
-                               file_name='resid_snr_'+str(PC)+'PCs.txt')
+                               file_name='resid_snr_'+PCstr+'PCs.txt')
     pipeline.add_module(module)
 
     
