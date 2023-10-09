@@ -116,7 +116,7 @@ module = RemoveFramesModule(name_in='slice_science',
                             image_in_tag='science3D', 
                             selected_out_tag='science_sliced', 
                             removed_out_tag='trash', 
-                            frames=[0,1,38,39])
+                            frames=[0,1,37,38])
 pipeline.add_module(module)
 
 module = AddFramesModule(name_in='coadd_science', 
@@ -136,7 +136,7 @@ module = RemoveFramesModule(name_in='slice_resid',
                             image_in_tag='resid3D', 
                             selected_out_tag='resid_sliced', 
                             removed_out_tag='trash', 
-                            frames=[0,1,38,39])
+                            frames=[0,1,37,38])
 pipeline.add_module(module)
 
 module = AddFramesModule(name_in='coadd_resid', 
