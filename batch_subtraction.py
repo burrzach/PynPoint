@@ -113,8 +113,14 @@ module = AddFramesModule(name_in='coadd_raw',
                          image_out_tag='coadd_raw')
 pipeline.add_module(module)
 
+module = ReshapeModule(name_in='shape_down_resid',
+                       image_in_tag='residuals',
+                       image_out_tag='resid3D',
+                       shape=(39,290,290))
+pipeline.add_module(module)
+
 module = AddFramesModule(name_in='coadd_resid', 
-                         image_in_tag='residuals', 
+                         image_in_tag='resid3D', 
                          image_out_tag='coadd_resid')
 pipeline.add_module(module)
 
