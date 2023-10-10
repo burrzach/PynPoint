@@ -251,7 +251,8 @@ def fake_planet(images: np.ndarray,
                 position: Tuple[float, float],
                 magnitude: float,
                 psf_scaling: float,
-                interpolation: str = 'spline') -> np.ndarray:
+                interpolation: str = 'spline',
+                ifs_data: bool = False) -> np.ndarray:
     """
     Function to inject artificial planets in a dataset.
 
@@ -272,17 +273,23 @@ def fake_planet(images: np.ndarray,
         Extra factor used to scale input PSF.
     interpolation : str
         Interpolation type ('spline', 'bilinear', or 'fft').
+    ifs_data : bool
+        Set to True when using IFS data.
 
     Returns
     -------
     numpy.ndarray
         Images with artificial planet injected.
     """
-    if len(parang) != images.shape[0] and len(parang) == 1:
-        parang = parang * np.ones(images.shape[0])
+    
+    if ifs_data == True:
+        if len(parang) != images.shape[1]:
+            raise ValueError(f'The number of parang values ({len(parang)}) should be equal to the '
+                              f'number of time slices ({images.shape[1]}).')
     else:
-        raise ValueError(f'The number of parang values ({len(parang)}) should be equal to the '
-                          f'number of images ({images.shape[0]}) or 1.')
+        if len(parang) != images.shape[0]:
+            raise ValueError(f'The number of parang values ({len(parang)}) should be equal to the '
+                              f'number of images ({images.shape[0]}).')
     
     sep = position[0]
     ang = np.radians(position[1] + 90. - parang)
@@ -296,18 +303,31 @@ def fake_planet(images: np.ndarray,
     im_shift = np.zeros(images.shape)
 
     for i in range(images.shape[0]):
-        if psf.shape[0] == 1:
-            im_shift[i, ] = shift_image(psf[0, ],
-                                        (float(y_shift[i]), float(x_shift[i])),
-                                        interpolation,
-                                        mode='reflect')
-
+        if ifs_data == False:
+            if psf.shape[0] == 1:
+                im_shift[i, ] = shift_image(psf[0, ],
+                                            (float(y_shift[i]), float(x_shift[i])),
+                                            interpolation,
+                                            mode='reflect')
+    
+            else:
+                im_shift[i, ] = shift_image(psf[i, ],
+                                            (float(y_shift[i]), float(x_shift[i])),
+                                            interpolation,
+                                            mode='reflect')
         else:
-            im_shift[i, ] = shift_image(psf[i, ],
-                                        (float(y_shift[i]), float(x_shift[i])),
-                                        interpolation,
-                                        mode='reflect')
-
+            for j in range(images.shape[1]):
+                if psf.shape[0] == 1 and psf.shape[1] == 1:
+                    im_shift[i, j] = shift_image(psf[0, 0],
+                                                (float(y_shift[j]), float(x_shift[j])),
+                                                interpolation,
+                                                mode='reflect')
+        
+                else:
+                    im_shift[i, j] = shift_image(psf[i, j],
+                                                (float(y_shift[j]), float(x_shift[j])),
+                                                interpolation,
+                                                mode='reflect')
     return images + im_shift
 
 

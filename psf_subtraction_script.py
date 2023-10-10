@@ -27,10 +27,10 @@ from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, Wavelengt
 from pynpoint.core.processing import ProcessingModule
 #from pynpoint.util.image import polar_to_cartesian
 
-#folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\6-15-2\\"
-#psffolder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\7-26-1\\"
-folder = "/home/zburr/PynPoint/6-15-2/"
-psffolder = "/home/zburr/PynPoint/7-26-1/"
+folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\6-15-2\\"
+psffolder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\7-26-1\\"
+#folder = "/home/zburr/PynPoint/6-15-2/"
+#psffolder = "/home/zburr/PynPoint/7-26-1/"
 
 PC_list=[1,3,5,7,10,15,20]
 
@@ -151,9 +151,9 @@ pipeline.add_module(module)
 
 #Crop planet from image to use as fake planet
 module = ReshapeModule(name_in='shape_down',
-                       image_in_tag='psf',
-                       image_out_tag='psf3D',
-                       shape=(39,290,290))
+                        image_in_tag='psf',
+                        image_out_tag='psf3D',
+                        shape=(39,290,290))
 pipeline.add_module(module)
 
 module = StarExtractionModule(name_in='extract_planet', 
@@ -184,30 +184,31 @@ module = PSFpreparationModule(name_in='maskpsf',
 pipeline.add_module(module)
 
 #Add in fake planet
-module = ReshapeModule(name_in='shape_down_science',
-                       image_in_tag='science',
-                       image_out_tag='science3D',
-                       shape=(39,290,290))
+module = ReshapeModule(name_in='shape_up_psf',
+                        image_in_tag='masked_planet',
+                        image_out_tag='planet4D',
+                        shape=(1,1,290,290))
 pipeline.add_module(module)
 
 module = FakePlanetModule(name_in='inject', 
-                          image_in_tag='science3D', 
-                          psf_in_tag='masked_planet', 
+                          image_in_tag='science', 
+                          psf_in_tag='planet4D', 
                           image_out_tag='fake', 
                           position=(1.5,90), 
-                          magnitude=4.)
+                          magnitude=1.,
+                          ifs_data=True)
 pipeline.add_module(module)
 
-module = ReshapeModule(name_in='shape_up_science',
-                        image_in_tag='fake',
-                        image_out_tag='fake_resize',
-                        shape=(39,1,290,290))
-pipeline.add_module(module)
+# module = ReshapeModule(name_in='shape_up_science',
+#                         image_in_tag='fake',
+#                         image_out_tag='fake_resize',
+#                         shape=(39,1,290,290))
+# pipeline.add_module(module)
 
 
 #Prepare subtraction
 module = PSFpreparationModule(name_in='prep',
-                              image_in_tag='fake_resize',
+                              image_in_tag='fake',
                               image_out_tag='prep',
                               mask_out_tag=None,
                               norm=False,
@@ -224,6 +225,8 @@ module = FitsWritingModule(name_in='write_fake',
                            output_dir=folder)
 pipeline.add_module(module)
 
+pipeline.run()
+'''
 module = AttributeWritingModule(name_in='write_wl',
                            data_tag='science',
                            attribute='WAVELENGTH',
@@ -313,3 +316,4 @@ for PC in PC_list:
     pipeline.run_module('shape_down_resid')
     pipeline.run_module('measure_resid')
     pipeline.run_module('write_resid_snr')
+'''

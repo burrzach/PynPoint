@@ -45,7 +45,8 @@ class FakePlanetModule(ProcessingModule):
                  position: Tuple[float, float],
                  magnitude: float,
                  psf_scaling: float = 1.,
-                 interpolation: str = 'spline') -> None:
+                 interpolation: str = 'spline',
+                 ifs_data: bool = False) -> None:
         """
         Parameters
         ----------
@@ -57,7 +58,7 @@ class FakePlanetModule(ProcessingModule):
         psf_in_tag : str
             Tag of the database entry that contains the reference PSF
             that is used as fake planet. Can be either a single image
-            (2D) or a cube (3D) with the dimensions equal to
+            (2D) or a cube with the dimensions equal to
             ``image_in_tag``.
         image_out_tag : str
             Tag of the database entry with images that are written as
@@ -76,6 +77,10 @@ class FakePlanetModule(ProcessingModule):
         interpolation : str
             Type of interpolation that is used for shifting the
             images (spline, bilinear, or fft).
+        ifs_data : bool
+            Set to True when using IFS data which is stored as a 
+            4D array with the wavelength and temporal dimensions 
+            as first and second dimension, respectively.
 
         Returns
         -------
@@ -98,6 +103,7 @@ class FakePlanetModule(ProcessingModule):
         self.m_magnitude = magnitude
         self.m_psf_scaling = psf_scaling
         self.m_interpolation = interpolation
+        self.m_ifs_data = ifs_data
 
     @typechecked
     def run(self) -> None:
@@ -127,8 +133,13 @@ class FakePlanetModule(ProcessingModule):
 
         im_shape = self.m_image_in_port.get_shape()
         psf_shape = self.m_psf_in_port.get_shape()
-
+        
         if psf_shape[0] != 1 and psf_shape[0] != im_shape[0]:
+            raise ValueError('The number of frames in psf_in_tag does not match with the number '
+                             'of frames in image_in_tag. The DerotateAndStackModule can be '
+                             'used to average the PSF frames (without derotating) before applying '
+                             'the FakePlanetModule.')
+        elif self.m_ifs_data and (psf_shape[1] != 1 and psf_shape[1] != im_shape[1]):
             raise ValueError('The number of frames in psf_in_tag does not match with the number '
                              'of frames in image_in_tag. The DerotateAndStackModule can be '
                              'used to average the PSF frames (without derotating) before applying '
@@ -158,9 +169,10 @@ class FakePlanetModule(ProcessingModule):
                                   position=self.m_position,
                                   magnitude=self.m_magnitude,
                                   psf_scaling=self.m_psf_scaling,
-                                  interpolation='spline')
+                                  interpolation='spline',
+                                  ifs_data=self.m_ifs_data)
 
-            self.m_image_out_port.append(im_fake, data_dim=3)
+            self.m_image_out_port.append(im_fake, data_dim=3+self.m_ifs_data)
 
         history = f'(sep, angle, mag) = ({self.m_position[0]*pixscale:.2f}, ' \
                   f'{self.m_position[1]:.2f}, {self.m_magnitude:.2f})'
