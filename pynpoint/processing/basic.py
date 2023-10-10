@@ -227,6 +227,8 @@ class AddFramesModule(ProcessingModule):
 
             image += self.m_image_in_port[frames[i]:frames[i+1], ].sum(axis=0)
         
+        image *= self.m_scaling
+        
         self.m_image_out_port.append(image)
         
         history = f'scaling = {self.m_scaling}'
