@@ -32,7 +32,9 @@ def contrast_limit(path_images: str,
                    aperture: float,
                    residuals: str,
                    snr_inject: float,
-                   position: Tuple[float, float]) -> Tuple[float, float, float, float]:
+                   position: Tuple[float, float],
+                   processing_type: str ='ADI',
+                   ifs_data: bool = False) -> Tuple[float, float, float, float]:
 
     """
     Function for calculating the contrast limit at a specified position for a given sigma level or
