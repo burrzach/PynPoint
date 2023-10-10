@@ -22,7 +22,7 @@ def combine_residuals(method: str,
     Parameters
     ----------
     method : str
-        Method used for combining the residuals ('mean', 'median', 'weighted', 'clipped', or 'coadd').
+        Method used for combining the residuals ('mean', 'median', 'weighted', or 'clipped').
     res_rot : np.ndarray
         Derotated residuals of the PSF subtraction (3D).
     residuals : np.ndarray, None
@@ -94,9 +94,6 @@ def _residuals(method: str,
     elif method == 'median':
         stack = np.median(res_rot, axis=0)
         
-    elif method == 'coadd':
-        stack = np.sum(res_rot, axis=0)
-
     elif method == 'weighted':
         tmp_res_var = np.var(residuals, axis=0)
 
