@@ -482,7 +482,7 @@ class SDIContrastCurveModule(ProcessingModule):
                              f'DerotateAndStackModule can be used to average the PSF frames '
                              f'(without derotating) before applying the ContrastCurveModule.')
             
-        if self.processing_type == 'SDI' and images.ndim != 4:
+        if self.m_processing_type == 'SDI' and images.ndim != 4:
             raise ValueError('Images must be four dimensional to use SDI.')
 
         cpu = self._m_config_port.get_attribute('CPU')
@@ -575,7 +575,8 @@ class SDIContrastCurveModule(ProcessingModule):
                                                         self.m_aperture,
                                                         self.m_residuals,
                                                         self.m_snr_inject,
-                                                        pos)))
+                                                        pos,
+                                                        self.m_processing_type)))
 
         pool.close()
 
