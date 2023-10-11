@@ -17,9 +17,10 @@ from typeguard import typechecked
 
 from pynpoint.core.processing import ProcessingModule
 from pynpoint.util.image import create_mask
-from pynpoint.util.limits import contrast_limit
+from pynpoint.util.limits import contrast_limit, SDIcontrast_limit
 from pynpoint.util.module import progress
 from pynpoint.util.psf import pca_psf_subtraction
+from pynpoint.util.postproc import postprocessor
 from pynpoint.util.residuals import combine_residuals
 
 
@@ -339,6 +340,7 @@ class SDIContrastCurveModule(ProcessingModule):
                  residuals: str = 'mean',
                  snr_inject: float = 100.,
                  processing_type: str = 'ADI',
+                 ifs_data: bool = False,
                  **kwargs: float) -> None:
         """
         Parameters
@@ -475,6 +477,14 @@ class SDIContrastCurveModule(ProcessingModule):
                              f'the number of frames in image_in_tag {images.shape}. The '
                              f'DerotateAndStackModule can be used to average the PSF frames '
                              f'(without derotating) before applying the ContrastCurveModule.')
+        elif self.m_ifs_data and (psf.shape[1] != 1 and psf.shape[1] != images.shape[1]):
+            raise ValueError(f'The number of frames in psf_in_tag {psf.shape} does not match with '
+                             f'the number of frames in image_in_tag {images.shape}. The '
+                             f'DerotateAndStackModule can be used to average the PSF frames '
+                             f'(without derotating) before applying the ContrastCurveModule.')
+            
+        if self.processing_type == 'SDI' and images.ndim != 4:
+            raise ValueError('Images must be four dimensional to use SDI.')
 
         cpu = self._m_config_port.get_attribute('CPU')
         working_place = self._m_config_port.get_attribute('WORKING_PLACE')
@@ -508,8 +518,8 @@ class SDIContrastCurveModule(ProcessingModule):
 
         pos_r = np.delete(pos_r, index_del)
 
-        if self.m_edge_size is None or self.m_edge_size > images.shape[1]/2.:
-            index_del = np.argwhere(pos_r+self.m_aperture >= images.shape[1]/2.)
+        if self.m_edge_size is None or self.m_edge_size > images.shape[-1]/2.:
+            index_del = np.argwhere(pos_r+self.m_aperture >= images.shape[-1]/2.)
         else:
             index_del = np.argwhere(pos_r+self.m_aperture >= self.m_edge_size)
 
@@ -532,16 +542,28 @@ class SDIContrastCurveModule(ProcessingModule):
 
         mask = create_mask(images.shape[-2:], (self.m_cent_size, self.m_edge_size))
 
-        _, im_res = pca_psf_subtraction(images=images*mask,
-                                        angles=-1.*parang+self.m_extra_rot,
-                                        pca_number=self.m_pca_number)
-
+        # _, im_res = pca_psf_subtraction(images=images*mask,
+        #                                 angles=-1.*parang+self.m_extra_rot,
+        #                                 pca_number=self.m_pca_number)
+        print('input image', images.shape) #!!!
+        _, im_res = postprocessor(images=images,
+                                  angles=-1.*parang+self.m_extra_rot,
+                                  pca_number=self.m_pca_number,
+                                  mask=mask,
+                                  processing_type=self.m_processing_type)
+        print('residual w/o planet', im_res.shape) #!!!
+        
         noise = combine_residuals(method=self.m_residuals, res_rot=im_res)
-
+        print('noise', noise.shape) #!!!
+        
+        if images.ndim == 4:
+            noise = np.sum(noise[2:-2], axis=0)
+        print('noise coadded', noise.shape) #!!!
+        
         pool = mp.Pool(cpu)
 
         for pos in positions:
-            async_results.append(pool.apply_async(contrast_limit,
+            async_results.append(pool.apply_async(SDIcontrast_limit,
                                                   args=(tmp_im_str,
                                                         tmp_psf_str,
                                                         noise,

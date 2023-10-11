@@ -49,6 +49,7 @@ from pynpoint.processing.frameselection import RemoveFramesModule, \
                                                ResidualSelectionModule
 
 from pynpoint.processing.limits import ContrastCurveModule, \
+                                       SDIContrastCurveModule, \
                                        MassLimitsModule
 
 from pynpoint.processing.pcabackground import PCABackgroundPreparationModule, \
