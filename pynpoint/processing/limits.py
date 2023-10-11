@@ -340,7 +340,6 @@ class SDIContrastCurveModule(ProcessingModule):
                  residuals: str = 'mean',
                  snr_inject: float = 100.,
                  processing_type: str = 'ADI',
-                 ifs_data: bool = False,
                  **kwargs: float) -> None:
         """
         Parameters

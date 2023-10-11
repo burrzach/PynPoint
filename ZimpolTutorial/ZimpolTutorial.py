@@ -47,6 +47,8 @@ module = ParangReadingModule(name_in='parang',
 pipeline.add_module(module)
 pipeline.run_module('parang')
 
+print(pipeline.get_attribute('zimpol', 'PARANG', static=False))
+
 #filter bad pixels
 module = BadPixelSigmaFilterModule(name_in='badpixel',
                                    image_in_tag='zimpol',
@@ -81,6 +83,9 @@ module = StarAlignmentModule(name_in='align',
                              subframe=0.1)
 pipeline.add_module(module)
 pipeline.run_module('align')
+
+#data = pipeline.get_data('crop')
+#plt.imshow(data[0, ], origin='lower')
 
 #fit psf
 module = FitCenterModule(name_in='center',

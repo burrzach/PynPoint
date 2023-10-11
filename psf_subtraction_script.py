@@ -23,14 +23,14 @@ import numpy as np
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
     PSFpreparationModule, PcaPsfSubtractionModule, FitsWritingModule, FakePlanetModule,\
     AddLinesModule, RemoveFramesModule, StarExtractionModule, FalsePositiveModule, TextWritingModule,\
-    AttributeWritingModule
+    AttributeWritingModule, SDIContrastCurveModule
 from pynpoint.core.processing import ProcessingModule
 #from pynpoint.util.image import polar_to_cartesian
 
-folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\6-15-2\\"
-psffolder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\7-26-1\\"
-#folder = "/home/zburr/PynPoint/6-15-2/"
-#psffolder = "/home/zburr/PynPoint/7-26-1/"
+#folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\6-15-2\\"
+#psffolder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\7-26-1\\"
+folder = "/home/zburr/PynPoint/6-15-2/"
+psffolder = "/home/zburr/PynPoint/7-26-1/"
 
 PC_list=[1,3,5,7,10,15,20]
 
@@ -183,21 +183,39 @@ module = PSFpreparationModule(name_in='maskpsf',
                               edge_size=0.5)
 pipeline.add_module(module)
 
-#Add in fake planet
 module = ReshapeModule(name_in='shape_up_psf',
                         image_in_tag='masked_planet',
                         image_out_tag='planet4D',
                         shape=(1,1,290,290))
 pipeline.add_module(module)
 
-module = FakePlanetModule(name_in='inject', 
-                          image_in_tag='science', 
-                          psf_in_tag='planet4D', 
-                          image_out_tag='fake', 
-                          position=(1.5,90), 
-                          magnitude=1.,
-                          ifs_data=True)
+#Calculate contrast curve
+module = SDIContrastCurveModule(name_in='limits', 
+                                image_in_tag='science', 
+                                psf_in_tag='planet4D', 
+                                contrast_out_tag='limits',
+                                separation=(0.1,1.0,0.01),
+                                angle=(0.,360.,60.),
+                                threshold=('sigma',5.),
+                                psf_scaling=1.,
+                                aperture=0.05,
+                                pca_number=1,
+                                cent_size=None,
+                                edge_size=None,
+                                extra_rot=0,
+                                residuals='median',
+                                snr_inject=100.,
+                                processing_type='SDI')
 pipeline.add_module(module)
+
+# module = FakePlanetModule(name_in='inject', 
+#                           image_in_tag='science', 
+#                           psf_in_tag='planet4D', 
+#                           image_out_tag='fake', 
+#                           position=(1.5,90), 
+#                           magnitude=1.,
+#                           ifs_data=True)
+# pipeline.add_module(module)
 
 # module = ReshapeModule(name_in='shape_up_science',
 #                         image_in_tag='fake',
@@ -206,24 +224,24 @@ pipeline.add_module(module)
 # pipeline.add_module(module)
 
 
-#Prepare subtraction
-module = PSFpreparationModule(name_in='prep',
-                              image_in_tag='fake',
-                              image_out_tag='prep',
-                              mask_out_tag=None,
-                              norm=False,
-                              resize=None,
-                              cent_size=None,
-                              edge_size=None)
-pipeline.add_module(module)
+# #Prepare subtraction
+# module = PSFpreparationModule(name_in='prep',
+#                               image_in_tag='fake',
+#                               image_out_tag='prep',
+#                               mask_out_tag=None,
+#                               norm=False,
+#                               resize=None,
+#                               cent_size=None,
+#                               edge_size=None)
+# pipeline.add_module(module)
 
 
-#Measure and write out raw data
-module = FitsWritingModule(name_in='write_fake', 
-                           data_tag='fake', 
-                           file_name='6-15-2_fake_raw.fits',
-                           output_dir=folder)
-pipeline.add_module(module)
+# #Measure and write out raw data
+# module = FitsWritingModule(name_in='write_fake', 
+#                            data_tag='fake', 
+#                            file_name='6-15-2_fake_raw.fits',
+#                            output_dir=folder)
+# pipeline.add_module(module)
 
 pipeline.run()
 '''
