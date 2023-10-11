@@ -571,6 +571,7 @@ class SDIContrastCurveModule(ProcessingModule):
         
         if images.ndim == 4:
             noise = np.sum(noise[2:-2], axis=0)
+            noise = np.reshape(noise, (1,noise.shape[0],noise.shape[1]))
         print('noise coadded', noise.shape) #!!!
         
         pool = mp.Pool(cpu)
