@@ -22,6 +22,7 @@ from pynpoint.util.module import progress
 from pynpoint.util.psf import pca_psf_subtraction
 from pynpoint.util.postproc import postprocessor
 from pynpoint.util.residuals import combine_residuals
+from pynpoint.util.sdi import scaling_factors
 
 
 class ContrastCurveModule(ProcessingModule):
@@ -540,6 +541,21 @@ class SDIContrastCurveModule(ProcessingModule):
         np.save(tmp_psf_str, psf)
 
         mask = create_mask(images.shape[-2:], (self.m_cent_size, self.m_edge_size))
+        
+        if self.m_ifs_data:
+            # Get the wavelengths
+            if 'WAVELENGTH' in self.m_star_in_port.get_all_non_static_attributes():
+                wavelength = self.m_star_in_port.get_attribute('WAVELENGTH')
+
+            else:
+                raise ValueError('The wavelengths are not found. These should be stored '
+                                 'as the \'WAVELENGTH\' attribute.')
+
+            # Calculate the wavelength ratios
+            scales = scaling_factors(wavelength)
+
+        else:
+            scales = None
 
         # _, im_res = pca_psf_subtraction(images=images*mask,
         #                                 angles=-1.*parang+self.m_extra_rot,
@@ -547,6 +563,7 @@ class SDIContrastCurveModule(ProcessingModule):
         print('input image', images.shape) #!!!
         _, im_res = postprocessor(images=images,
                                   angles=-1.*parang+self.m_extra_rot,
+                                  scales=scales,
                                   pca_number=self.m_pca_number,
                                   mask=mask,
                                   processing_type=self.m_processing_type)
@@ -576,7 +593,8 @@ class SDIContrastCurveModule(ProcessingModule):
                                                         self.m_residuals,
                                                         self.m_snr_inject,
                                                         pos,
-                                                        self.m_processing_type)))
+                                                        self.m_processing_type,
+                                                        scales)))
 
         pool.close()
 

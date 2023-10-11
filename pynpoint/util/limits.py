@@ -196,7 +196,8 @@ def SDIcontrast_limit(path_images: str,
                    residuals: str,
                    snr_inject: float,
                    position: Tuple[float, float],
-                   processing_type: str = 'ADI') -> Tuple[float, float, float, float]:
+                   processing_type: str = 'ADI',
+                   scales: np.ndarray = None) -> Tuple[float, float, float, float]:
 
     """
     Function for calculating the contrast limit at a specified position for a given sigma level or
@@ -325,6 +326,7 @@ def SDIcontrast_limit(path_images: str,
     #                                 pca_number=pca_number)
     _, im_res = postprocessor(images=fake,
                               angles=-1.*parang+extra_rot,
+                              scales=scales,
                               pca_number=pca_number,
                               mask=mask,
                               processing_type=processing_type)
