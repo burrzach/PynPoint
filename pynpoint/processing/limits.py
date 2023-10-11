@@ -557,22 +557,18 @@ class SDIContrastCurveModule(ProcessingModule):
         # _, im_res = pca_psf_subtraction(images=images*mask,
         #                                 angles=-1.*parang+self.m_extra_rot,
         #                                 pca_number=self.m_pca_number)
-        print('input image', images.shape) #!!!
         _, im_res = postprocessor(images=images,
                                   angles=-1.*parang+self.m_extra_rot,
                                   scales=scales,
                                   pca_number=self.m_pca_number,
                                   mask=mask,
                                   processing_type=self.m_processing_type)
-        print('residual w/o planet', im_res.shape) #!!!
         
         noise = combine_residuals(method=self.m_residuals, res_rot=im_res)
-        print('noise', noise.shape) #!!!
         
         if images.ndim == 4:
             noise = np.sum(noise[2:-2], axis=0)
             noise = np.reshape(noise, (1,noise.shape[0],noise.shape[1]))
-        print('noise coadded', noise.shape) #!!!
         
         pool = mp.Pool(cpu)
 

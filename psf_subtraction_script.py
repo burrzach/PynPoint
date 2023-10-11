@@ -208,6 +208,11 @@ module = SDIContrastCurveModule(name_in='limits',
                                 processing_type='SDI')
 pipeline.add_module(module)
 
+module = TextWritingModule(name_in='write_limits',
+                           data_tag='limits',
+                           file_name='limits.txt')
+pipeline.add_module(module)
+
 # module = FakePlanetModule(name_in='inject', 
 #                           image_in_tag='science', 
 #                           psf_in_tag='planet4D', 

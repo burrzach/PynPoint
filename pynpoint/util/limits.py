@@ -318,7 +318,6 @@ def SDIcontrast_limit(path_images: str,
                        position=(position[0], position[1]),
                        magnitude=mag,
                        psf_scaling=psf_scaling)
-    print('w/ injection', fake.shape) #!!!
 
     # Run the PSF subtraction
     # _, im_res = pca_psf_subtraction(images=fake*mask,
@@ -330,18 +329,14 @@ def SDIcontrast_limit(path_images: str,
                               pca_number=pca_number,
                               mask=mask,
                               processing_type=processing_type)
-    print('residual', im_res.shape) #!!!
     
     # Stack the residuals
     im_res = combine_residuals(method=residuals, res_rot=im_res)
-    print('residual after combination', im_res.shape) #!!!
     
     if fake.ndim == 4:
         im_res = np.sum(im_res[2:-2], axis=0)
-    print('resid after coadding', im_res.shape) #!!!
     
     flux_out_frame = im_res[0, ] - noise[0, ]
-    print('flux_out_frame', flux_out_frame.shape) #!!!
 
     # Measure the flux of the fake planet after PCA
     # the first element is the planet
