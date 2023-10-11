@@ -542,7 +542,7 @@ class SDIContrastCurveModule(ProcessingModule):
 
         mask = create_mask(images.shape[-2:], (self.m_cent_size, self.m_edge_size))
         
-        if self.m_ifs_data:
+        if self.m_processing_type == 'SDI':
             # Get the wavelengths
             if 'WAVELENGTH' in self.m_star_in_port.get_all_non_static_attributes():
                 wavelength = self.m_star_in_port.get_attribute('WAVELENGTH')
