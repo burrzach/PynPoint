@@ -476,7 +476,7 @@ class SDIContrastCurveModule(ProcessingModule):
                              f'the number of frames in image_in_tag {images.shape}. The '
                              f'DerotateAndStackModule can be used to average the PSF frames '
                              f'(without derotating) before applying the ContrastCurveModule.')
-        elif self.m_ifs_data and (psf.shape[1] != 1 and psf.shape[1] != images.shape[1]):
+        elif images.ndim == 4 and (psf.shape[1] != 1 and psf.shape[1] != images.shape[1]):
             raise ValueError(f'The number of frames in psf_in_tag {psf.shape} does not match with '
                              f'the number of frames in image_in_tag {images.shape}. The '
                              f'DerotateAndStackModule can be used to average the PSF frames '
