@@ -251,17 +251,16 @@ def fake_planet(images: np.ndarray,
                 position: Tuple[float, float],
                 magnitude: float,
                 psf_scaling: float,
-                interpolation: str = 'spline',
-                ifs_data: bool = False) -> np.ndarray:
+                interpolation: str = 'spline') -> np.ndarray:
     """
     Function to inject artificial planets in a dataset.
 
     Parameters
     ----------
     images : numpy.ndarray
-        Input images (3D).
+        Input images (3D or 4D).
     psf : numpy.ndarray
-        PSF template (3D).
+        PSF template (same number of dimensions as images).
     parang : numpy.ndarray
         Parallactic angles (deg).
     position : tuple(float, float)
@@ -273,14 +272,14 @@ def fake_planet(images: np.ndarray,
         Extra factor used to scale input PSF.
     interpolation : str
         Interpolation type ('spline', 'bilinear', or 'fft').
-    ifs_data : bool
-        Set to True when using IFS data.
-
+        
     Returns
     -------
     numpy.ndarray
         Images with artificial planet injected.
     """
+    if images.ndim == 4:
+        ifs_data = True
     
     if ifs_data == True:
         if len(parang) != images.shape[1]:
