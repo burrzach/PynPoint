@@ -347,6 +347,7 @@ def SDIcontrast_limit(path_images: str,
                                               ignore=False)[0]
 
     # Calculate the amount of self-subtraction
+    print(position, flux_in, flux_out)
     attenuation = flux_out/flux_in
     # the throughput can not be negative. However, this can happen due to numerical inaccuracies
     if attenuation < 0:
