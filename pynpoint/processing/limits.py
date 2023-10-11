@@ -491,6 +491,18 @@ class SDIContrastCurveModule(ProcessingModule):
 
         parang = self.m_image_in_port.get_attribute('PARANG')
         pixscale = self.m_image_in_port.get_attribute('PIXSCALE')
+        
+        if self.m_processing_type == 'SDI':
+            # Get the wavelengths
+            if 'WAVELENGTH' in self.m_image_in_port.get_all_non_static_attributes():
+                wavelength = self.m_image_in_port.get_attribute('WAVELENGTH')
+            else:
+                raise ValueError('The wavelengths are not found. These should be stored '
+                                 'as the \'WAVELENGTH\' attribute.')
+            # Calculate the wavelength ratios
+            scales = scaling_factors(wavelength)
+        else:
+            scales = None
 
         self.m_image_in_port.close_port()
         self.m_psf_in_port.close_port()
@@ -541,21 +553,6 @@ class SDIContrastCurveModule(ProcessingModule):
         np.save(tmp_psf_str, psf)
 
         mask = create_mask(images.shape[-2:], (self.m_cent_size, self.m_edge_size))
-        
-        if self.m_processing_type == 'SDI':
-            # Get the wavelengths
-            if 'WAVELENGTH' in self.m_star_in_port.get_all_non_static_attributes():
-                wavelength = self.m_star_in_port.get_attribute('WAVELENGTH')
-
-            else:
-                raise ValueError('The wavelengths are not found. These should be stored '
-                                 'as the \'WAVELENGTH\' attribute.')
-
-            # Calculate the wavelength ratios
-            scales = scaling_factors(wavelength)
-
-        else:
-            scales = None
 
         # _, im_res = pca_psf_subtraction(images=images*mask,
         #                                 angles=-1.*parang+self.m_extra_rot,
