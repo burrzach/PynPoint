@@ -15,6 +15,14 @@ from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, \
                      FakePlanetModule, ContrastCurveModule, SDIContrastCurveModule, \
                      FitsWritingModule, TextWritingModule
 
+
+#download data
+#urllib.request.urlretrieve('https://home.strw.leidenuniv.nl/~stolker/pynpoint/hd142527_zimpol_h-alpha.tgz',
+#                           'hd142527_zimpol_h-alpha.tgz')
+#tar = tarfile.open('hd142527_zimpol_h-alpha.tgz')
+#tar.extractall(path='input')
+
+
 #initialize
 pipeline = Pypeline(working_place_in='./',
                     input_place_in='input/',
@@ -30,6 +38,14 @@ module = FitsReadingModule(name_in='read',
                            ifs_data=False)
 pipeline.add_module(module)
 pipeline.run_module('read')
+
+module = ParangReadingModule(name_in='parang',
+                             data_tag='zimpol',
+                             file_name='parang.dat',
+                             input_dir=None,
+                             overwrite=True)
+pipeline.add_module(module)
+pipeline.run_module('parang')
 
 #filter bad pixels
 module = BadPixelSigmaFilterModule(name_in='badpixel',
@@ -137,27 +153,27 @@ pipeline.add_module(module)
 pipeline.run_module('snr')
 
 #measure flux+pos
-module = SimplexMinimizationModule(name_in='simplex',
-                                   image_in_tag='centered',
-                                   psf_in_tag='psf',
-                                   res_out_tag='simplex',
-                                   flux_position_tag='fluxpos',
-                                   position=(11, 26),
-                                   magnitude=6.,
-                                   psf_scaling=-1.,
-                                   merit='gaussian',
-                                   aperture=10.*0.0036,
-                                   sigma=0.,
-                                   tolerance=0.01,
-                                   pca_number=range(1, 11),
-                                   cent_size=0.02,
-                                   edge_size=0.2,
-                                   extra_rot=-133.,
-                                   residuals='median',
-                                   reference_in_tag=None,
-                                   offset=None)
-pipeline.add_module(module)
-pipeline.run_module('simplex')
+#module = SimplexMinimizationModule(name_in='simplex',
+#                                   image_in_tag='centered',
+#                                   psf_in_tag='psf',
+#                                   res_out_tag='simplex',
+#                                   flux_position_tag='fluxpos',
+#                                   position=(11, 26),
+#                                   magnitude=6.,
+#                                   psf_scaling=-1.,
+#                                   merit='gaussian',
+#                                   aperture=10.*0.0036,
+#                                   sigma=0.,
+#                                   tolerance=0.01,
+#                                   pca_number=range(1, 11),
+#                                   cent_size=0.02,
+#                                   edge_size=0.2,
+#                                   extra_rot=-133.,
+#                                   residuals='median',
+#                                   reference_in_tag=None,
+#                                   offset=None)
+#pipeline.add_module(module)
+#pipeline.run_module('simplex')
 
 #remove planet
 module = FakePlanetModule(name_in='fake',
