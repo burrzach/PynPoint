@@ -232,7 +232,7 @@ class AddFramesModule(ProcessingModule):
         self.m_image_out_port.append(image)
         
         history = f'scaling = {self.m_scaling}'
-        self.m_image_out_port.add_history('AddImagesModule', history)
+        self.m_image_out_port.add_history('AddFramesModule', history)
         self.m_image_out_port.copy_attributes(self.m_image_in_port)
         self.m_image_out_port.close_port()
 

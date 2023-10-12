@@ -1,8 +1,8 @@
--Made FakePlanetModule work for (3D) IFS data by allowing only one parang value for all frames, thereby inserting planet at the same position in each frame
-	pynpoint.processing.fluxposition.FakePlanetModule
+-XXMade FakePlanetModule work for (3D) IFS data by allowing only one parang value for all frames, thereby inserting planet at the same position in each frame
+	pynpoint.processing.fluxposition.FakePlanetModuleXX
 -Wrote a new AddFramesModule which coadds all frames of one image (such as different wavelength slices)
 	pynpoint.processing.basic
 	Could instead add 'coadd' option to DerotateAndStack module (or other modules from stacking module)
--Added 'coadd' option to combine_residuals function
-	pynpoint.util.residuals
+-XXAdded 'coadd' option to combine_residuals function
+	pynpoint.util.residualsXX
 -

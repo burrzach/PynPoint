@@ -20,7 +20,7 @@ else:
 import numpy as np
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, \
     WavelengthReadingModule, PSFpreparationModule, PcaPsfSubtractionModule, \
-    FitsWritingModule, AddFramesModule, RemoveFramesModule
+    FitsWritingModule, AddFramesModule, RemoveFramesModule, DerotateAndStackModule
 from pynpoint.core.processing import ProcessingModule
 
 #Module to reshape arrays (to drop/add extra dimension)
@@ -106,8 +106,15 @@ pipeline.add_module(module)
 
 
 #coadd raw
+module = DerotateAndStackModule(name_in='derotate',
+                                image_in_tag='science',
+                                image_out_tag='science_derot',
+                                derotate=True,
+                                stack=None)
+pipeline.add_module(module)
+
 module = ReshapeModule(name_in='shape_down_science',
-                       image_in_tag='science',
+                       image_in_tag='science_derot',
                        image_out_tag='science3D',
                        shape=(39,290,290))
 pipeline.add_module(module)
