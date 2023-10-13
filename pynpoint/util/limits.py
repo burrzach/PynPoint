@@ -318,6 +318,15 @@ def SDIcontrast_limit(path_images: str,
                        position=(position[0], position[1]),
                        magnitude=mag,
                        psf_scaling=psf_scaling)
+    
+    if images.ndim == 4:
+        fake_coadd = np.sum(fake, axis=0)
+        fake_coadd = fake_coadd[0] - noise[0]
+        flux_measured = compute_aperture_flux_elements(image=fake_coadd,
+                                                  x_pos=yx_fake[1],
+                                                  y_pos=yx_fake[0],
+                                                  size=aperture,
+                                                  ignore=False)[0]
 
     # Run the PSF subtraction
     # _, im_res = pca_psf_subtraction(images=fake*mask,
@@ -347,7 +356,7 @@ def SDIcontrast_limit(path_images: str,
                                               ignore=False)[0]
 
     # Calculate the amount of self-subtraction
-    print(position, flux_in, flux_out)
+    print(position, flux_in, flux_measured, flux_out)
     attenuation = flux_out/flux_in
     # the throughput can not be negative. However, this can happen due to numerical inaccuracies
     if attenuation < 0:
