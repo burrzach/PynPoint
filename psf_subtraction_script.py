@@ -23,7 +23,7 @@ import numpy as np
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
     PSFpreparationModule, PcaPsfSubtractionModule, FitsWritingModule, FakePlanetModule,\
     AddLinesModule, RemoveFramesModule, StarExtractionModule, FalsePositiveModule, TextWritingModule,\
-    AttributeWritingModule, SDIContrastCurveModule
+    AttributeWritingModule, SDIContrastCurveModule, DerotateAndStackModule
 from pynpoint.core.processing import ProcessingModule
 #from pynpoint.util.image import polar_to_cartesian
 
@@ -190,8 +190,14 @@ module = ReshapeModule(name_in='shape_up_psf',
 pipeline.add_module(module)
 
 #Calculate contrast curve
+module = DerotateAndStackModule(name_in='derotate',
+                                image_in_tag='science',
+                                image_out_tag='science_derot',
+                                stack=None)
+pipeline.add_module(module)
+
 module = SDIContrastCurveModule(name_in='limits', 
-                                image_in_tag='science', 
+                                image_in_tag='science_derot', 
                                 psf_in_tag='planet4D', 
                                 contrast_out_tag='limits',
                                 separation=(0.15,1.0,0.1),
