@@ -320,7 +320,7 @@ def SDIcontrast_limit(path_images: str,
                        psf_scaling=psf_scaling)
     
     if images.ndim == 4:
-        fake_coadd = np.sum(fake, axis=0)
+        fake_coadd = np.sum(fake[2:-2], axis=0)
         fake_coadd = fake_coadd[0] - noise[0]
         flux_measured = compute_aperture_flux_elements(image=fake_coadd,
                                                   x_pos=yx_fake[1],
