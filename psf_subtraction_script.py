@@ -29,7 +29,7 @@ from pynpoint.core.processing import ProcessingModule
 
 #folder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\6-15-2\\"
 #psffolder = "D:\\Zach\\Documents\\TUDelft\\MSc\\Thesis\\PynPoint\\7-26-1\\"
-folder = "/home/zburr/PynPoint/6-15-2/"
+folder = "/home/zburr/PynPoint/5-28-2/"
 psffolder = "/home/zburr/PynPoint/7-26-1/"
 
 PC_list=[1,3,5,7,10,15,20]
@@ -190,11 +190,11 @@ module = ReshapeModule(name_in='shape_up_psf',
 pipeline.add_module(module)
 
 #Calculate contrast curve
-module = DerotateAndStackModule(name_in='derotate',
-                                image_in_tag='science',
-                                image_out_tag='science_derot',
-                                stack=None)
-pipeline.add_module(module)
+# module = DerotateAndStackModule(name_in='derotate',
+#                                 image_in_tag='science',
+#                                 image_out_tag='science_derot',
+#                                 stack=None)
+# pipeline.add_module(module)
 
 module = SDIContrastCurveModule(name_in='limits', 
                                 image_in_tag='science_derot', 
