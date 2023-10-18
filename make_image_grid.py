@@ -5,7 +5,7 @@ from mpl_toolkits.axes_grid1 import axes_grid
 from pynpoint import Pypeline, FitsReadingModule
 from math import ceil
 
-
+#%%
 #initialize
 folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/cubes/"
 
@@ -72,4 +72,18 @@ for n in range(len(image_indices)):
         ag[1].imshow(resid[0], origin='lower', extent=[size, -size, -size, size])
         #cb = ag[1].colorbar()
         #cb.set_label('Flux (ADU)', size=14.)
-        
+
+
+#%%
+file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companion_data.txt"
+data = np.genfromtxt(file)
+head = data[0]
+spectra = data[1:]
+spectra = spectra[spectra[:,0].argsort()]
+
+plt.plot(spectra[:,0] / 1e3, spectra[:,1], marker='o', label='companion')
+plt.plot(spectra[:,0] / 1e3, spectra[:,2], marker='o', label='host star')
+plt.legend()
+plt.yscale('log')
+plt.xlabel('$\lambda$ $[\mu m]$')
+plt.show()

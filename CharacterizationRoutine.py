@@ -206,12 +206,11 @@ spectra[:,2] = pipeline.get_data('star_phot')[:,0]
 ## Output data ##
 companion_tot = sum(spectra[2:-2,1])
 star_tot = sum(spectra[2:-2,2])
-print(companion_tot)
-print(star_tot)
 try:
     mag = -2.5*math.log10(companion_tot/star_tot)
 except:
     mag = 0
+    print('Error with companion or star flux measurements')
 
 data = np.array([sep, angle, mag])
 print('sep, angle, mag')
