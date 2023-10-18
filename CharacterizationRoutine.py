@@ -1,5 +1,6 @@
 #imports
 import numpy as np
+import math
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
     AddFramesModule, RemoveFramesModule, FalsePositiveModule, AperturePhotometryModule, \
     DerotateAndStackModule
@@ -8,7 +9,7 @@ from pynpoint.core.processing import ProcessingModule
 
 #Settings
 folder = ""
-pos_guess = [0., 0.]
+pos_guess = (0., 0.)
 
 
 #Module to reshape arrays (to drop/add extra dimension)
@@ -94,21 +95,22 @@ pipeline.add_module(module)
 pipeline.run_module('wavelengthpsf')
 
 
-## Find companion position ##
-#Coadd images
+## Coadd images ##
 #coadd science
-module = DerotateAndStackModule(name_in='derotate',
+module = DerotateAndStackModule(name_in='derotate_science',
                                 image_in_tag='science',
                                 image_out_tag='science_derot',
                                 derotate=True,
                                 stack=None)
 pipeline.add_module(module)
+pipeline.run_module('derotate_science')
 
 module = ReshapeModule(name_in='shape_down_science',
                        image_in_tag='science_derot',
                        image_out_tag='science3D',
                        shape=(39,290,290))
 pipeline.add_module(module)
+pipeline.run_module('shape_down_science')
 
 module = RemoveFramesModule(name_in='slice_science', 
                             image_in_tag='science3D', 
@@ -116,8 +118,97 @@ module = RemoveFramesModule(name_in='slice_science',
                             removed_out_tag='trash', 
                             frames=[0,1,37,38])
 pipeline.add_module(module)
+pipeline.run_module('slice_science')
 
 module = AddFramesModule(name_in='coadd_science', 
                          image_in_tag='science_sliced', 
-                         image_out_tag='coadd_raw')
+                         image_out_tag='science_coadd')
 pipeline.add_module(module)
+pipeline.run_module('coadd_science')
+
+#coadd psf
+module = DerotateAndStackModule(name_in='derotate_psf',
+                                image_in_tag='psf',
+                                image_out_tag='psf_derot',
+                                derotate=True,
+                                stack=None)
+pipeline.add_module(module)
+pipeline.run_module('derotate_psf')
+
+module = ReshapeModule(name_in='shape_down_psf',
+                       image_in_tag='psf_derot',
+                       image_out_tag='psf3D',
+                       shape=(39,290,290))
+pipeline.add_module(module)
+pipeline.run_module('shape_down_psf')
+
+module = RemoveFramesModule(name_in='slice_psf', 
+                            image_in_tag='psf3D', 
+                            selected_out_tag='psf_sliced', 
+                            removed_out_tag='trash', 
+                            frames=[0,1,37,38])
+pipeline.add_module(module)
+pipeline.run_module('slice_psf')
+
+module = AddFramesModule(name_in='coadd_psf', 
+                         image_in_tag='psf_sliced', 
+                         image_out_tag='psf_coadd')
+pipeline.add_module(module)
+pipeline.run_module('coadd_psf')
+
+
+## Find position ##
+module = FalsePositiveModule(name_in='find_companion',
+                             image_in_tag='science_coadd',
+                             snr_out_tag='companion_snr', 
+                             position=pos_guess, 
+                             optimize=True,
+                             tolerance=0.01,
+                             offset=50)
+pipeline.add_module(module)
+pipeline.run_module('find_companion')
+
+snr = pipeline.get_data('companion_snr')
+print('x position (pix), y position (pix), separation (arcsec), position angle (deg), SNR, FPF')
+print(snr)
+pos_pix = (snr[0], snr[1])
+sep = snr[2]
+angle = snr[3]
+
+
+## Measure spectra ##
+spectra = np.zeros((39, 3))
+spectra[:,0] = pipeline.get_attribute('science', 'WAVELENGTH')
+
+#measure companion spectrum
+module = AperturePhotometryModule(name_in='measure_companion', 
+                                  image_in_tag='science_derot', 
+                                  phot_out_tag='companion_phot',
+                                  radius=0.05,
+                                  position=pos_pix)
+pipeline.add_module(module)
+pipeline.run_module('measure_companion')
+
+spectra[:,1] = pipeline.get_data('companion_phot')
+
+#measure star spectrum
+module = AperturePhotometryModule(name_in='measure_star', 
+                                  image_in_tag='psf_derot', 
+                                  phot_out_tag='star_phot',
+                                  radius=0.15,
+                                  position=None)
+pipeline.add_module(module)
+pipeline.run_module('measure_star')
+
+spectra[:,2] = pipeline.get_data('star_phot')
+
+
+## Output data ##
+companion_tot = sum(spectra[:,1])
+star_tot = sum(spectra[:,2])
+mag = -2.5*math.log10(companion_tot/star_tot)
+
+data = np.array([sep, angle, mag])
+data = np.vstack((data, spectra))
+
+np.savetxt(folder+'companion_data.txt', data)
