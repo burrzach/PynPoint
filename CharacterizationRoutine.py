@@ -182,8 +182,7 @@ module = AperturePhotometryModule(name_in='measure_companion',
 pipeline.add_module(module)
 pipeline.run_module('measure_companion')
 
-phot = pipeline.get_data('companion_phot')
-print(phot)
+spectra[:,1] = pipeline.get_data('companion_phot')[:,0]
 
 #measure star spectrum
 module = ReshapeModule(name_in='shape_down_psf', 
@@ -207,9 +206,16 @@ spectra[:,2] = pipeline.get_data('star_phot')[:,0]
 ## Output data ##
 companion_tot = sum(spectra[2:-2,1])
 star_tot = sum(spectra[2:-2,2])
-mag = -2.5*math.log10(companion_tot/star_tot)
+print(companion_tot)
+print(star_tot)
+try:
+    mag = -2.5*math.log10(companion_tot/star_tot)
+except:
+    mag = 0
 
 data = np.array([sep, angle, mag])
+print('sep, angle, mag')
+print(data)
 data = np.vstack((data, spectra))
 
 np.savetxt(folder+'companion_data.txt', data)
