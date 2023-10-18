@@ -130,7 +130,7 @@ angle = snr[3]
 
 ## Measure spectra ##
 spectra = np.zeros((39, 3))
-spectra[:,0] = pipeline.get_attribute('science', 'WAVELENGTH')
+spectra[:,0] = pipeline.get_attribute('science', 'WAVELENGTH', static=False)
 
 #measure companion spectrum
 module = AperturePhotometryModule(name_in='measure_companion', 
