@@ -8,8 +8,8 @@ from pynpoint.core.processing import ProcessingModule
 
 
 #Settings
-folder = ""
-pos_guess = (0., 0.)
+folder = "/data/zburr/yses_ifu/2nd_epoch/processed/2023-05-27/products/"
+pos_guess = (247., 146.)
 
 
 #Module to reshape arrays (to drop/add extra dimension)
@@ -184,7 +184,7 @@ spectra[:,0] = pipeline.get_attribute('science', 'WAVELENGTH')
 module = AperturePhotometryModule(name_in='measure_companion', 
                                   image_in_tag='science_derot', 
                                   phot_out_tag='companion_phot',
-                                  radius=0.05,
+                                  radius=0.15,
                                   position=pos_pix)
 pipeline.add_module(module)
 pipeline.run_module('measure_companion')
@@ -204,8 +204,8 @@ spectra[:,2] = pipeline.get_data('star_phot')
 
 
 ## Output data ##
-companion_tot = sum(spectra[:,1])
-star_tot = sum(spectra[:,2])
+companion_tot = sum(spectra[2:-2,1])
+star_tot = sum(spectra[2:-2,2])
 mag = -2.5*math.log10(companion_tot/star_tot)
 
 data = np.array([sep, angle, mag])
