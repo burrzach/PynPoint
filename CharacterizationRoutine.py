@@ -4,7 +4,6 @@ import math
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
     AddFramesModule, RemoveFramesModule, FalsePositiveModule, AperturePhotometryModule, \
     DerotateAndStackModule
-from pynpoint.core.processing import ProcessingModule
 
 
 #Settings
@@ -12,39 +11,6 @@ folder = "/data/zburr/yses_ifu/2nd_epoch/processed/2023-05-27/products/"
 pos_guess = (247., 146.)
 
 
-#Module to reshape arrays (to drop/add extra dimension)
-class ReshapeModule(ProcessingModule):
-
-    def __init__(self,
-                 name_in,
-                 image_in_tag,
-                 image_out_tag,
-                 shape
-                 ):
-
-        super(ReshapeModule, self).__init__(name_in)
-
-        self.m_in_port = self.add_input_port(image_in_tag)
-        self.m_out_port = self.add_output_port(image_out_tag)
-        
-        self.shape = shape
-
-    def run(self):
-        
-        image = self.m_in_port.get_all()
-        orig_shape = np.shape(image)
-        
-        reshaped = np.reshape(image, self.shape)
-        
-        self.m_out_port.set_all(reshaped)
-        
-        history = str(orig_shape)+'->'+str(self.shape)
-        self.m_out_port.copy_attributes(self.m_in_port)
-        self.m_out_port.add_history('ReshapeModule', history)
-
-        self.m_out_port.close_port()
-
-    
 #Initialize pipeline
 pipeline = Pypeline(working_place_in=folder,
                     input_place_in  =folder,
@@ -105,13 +71,6 @@ module = DerotateAndStackModule(name_in='derotate_science',
 pipeline.add_module(module)
 pipeline.run_module('derotate_science')
 
-# module = ReshapeModule(name_in='shape_down_science',
-#                        image_in_tag='science_derot',
-#                        image_out_tag='science3D',
-#                        shape=(39,290,290))
-# pipeline.add_module(module)
-# pipeline.run_module('shape_down_science')
-
 module = RemoveFramesModule(name_in='slice_science', 
                             image_in_tag='science_derot', 
                             selected_out_tag='science_sliced', 
@@ -134,13 +93,6 @@ module = DerotateAndStackModule(name_in='derotate_psf',
                                 stack=None)
 pipeline.add_module(module)
 pipeline.run_module('derotate_psf')
-
-# module = ReshapeModule(name_in='shape_down_psf',
-#                        image_in_tag='psf_derot',
-#                        image_out_tag='psf3D',
-#                        shape=(39,80,80))
-# pipeline.add_module(module)
-# pipeline.run_module('shape_down_psf')
 
 module = RemoveFramesModule(name_in='slice_psf', 
                             image_in_tag='psf_derot', 
@@ -168,7 +120,7 @@ module = FalsePositiveModule(name_in='find_companion',
 pipeline.add_module(module)
 pipeline.run_module('find_companion')
 
-snr = pipeline.get_data('companion_snr')
+snr = pipeline.get_data('companion_snr')[0]
 print('x position (pix), y position (pix), separation (arcsec), position angle (deg), SNR, FPF')
 print(snr)
 pos_pix = (snr[0], snr[1])
