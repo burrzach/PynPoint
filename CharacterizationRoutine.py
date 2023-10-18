@@ -182,7 +182,8 @@ module = AperturePhotometryModule(name_in='measure_companion',
 pipeline.add_module(module)
 pipeline.run_module('measure_companion')
 
-spectra[:,1] = pipeline.get_data('companion_phot')
+phot = pipeline.get_data('companion_phot')
+print(phot)
 
 #measure star spectrum
 module = ReshapeModule(name_in='shape_down_psf', 
