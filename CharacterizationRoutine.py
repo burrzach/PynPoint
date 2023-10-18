@@ -201,7 +201,7 @@ module = AperturePhotometryModule(name_in='measure_star',
 pipeline.add_module(module)
 pipeline.run_module('measure_star')
 
-spectra[:,2] = pipeline.get_data('star_phot')
+spectra[:,2] = pipeline.get_data('star_phot')[:,0]
 
 
 ## Output data ##
