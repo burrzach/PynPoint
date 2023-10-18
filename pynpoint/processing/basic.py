@@ -211,9 +211,6 @@ class AddFramesModule(ProcessingModule):
             None
         """
 
-        if len(self.m_image_in_port.get_shape()) != 3:
-            raise ValueError('The input image must be 3D to allow adding frames.')
-
         memory = self._m_config_port.get_attribute('MEMORY')
         nimages = self.m_image_in_port.get_shape()[0]
         frames = memory_frames(memory, nimages)
