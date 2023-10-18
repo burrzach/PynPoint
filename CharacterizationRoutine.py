@@ -105,15 +105,15 @@ module = DerotateAndStackModule(name_in='derotate_science',
 pipeline.add_module(module)
 pipeline.run_module('derotate_science')
 
-module = ReshapeModule(name_in='shape_down_science',
-                       image_in_tag='science_derot',
-                       image_out_tag='science3D',
-                       shape=(39,290,290))
-pipeline.add_module(module)
-pipeline.run_module('shape_down_science')
+# module = ReshapeModule(name_in='shape_down_science',
+#                        image_in_tag='science_derot',
+#                        image_out_tag='science3D',
+#                        shape=(39,290,290))
+# pipeline.add_module(module)
+# pipeline.run_module('shape_down_science')
 
 module = RemoveFramesModule(name_in='slice_science', 
-                            image_in_tag='science3D', 
+                            image_in_tag='science_derot', 
                             selected_out_tag='science_sliced', 
                             removed_out_tag='trash', 
                             frames=[0,1,37,38])
@@ -135,15 +135,15 @@ module = DerotateAndStackModule(name_in='derotate_psf',
 pipeline.add_module(module)
 pipeline.run_module('derotate_psf')
 
-module = ReshapeModule(name_in='shape_down_psf',
-                       image_in_tag='psf_derot',
-                       image_out_tag='psf3D',
-                       shape=(39,80,80))
-pipeline.add_module(module)
-pipeline.run_module('shape_down_psf')
+# module = ReshapeModule(name_in='shape_down_psf',
+#                        image_in_tag='psf_derot',
+#                        image_out_tag='psf3D',
+#                        shape=(39,80,80))
+# pipeline.add_module(module)
+# pipeline.run_module('shape_down_psf')
 
 module = RemoveFramesModule(name_in='slice_psf', 
-                            image_in_tag='psf3D', 
+                            image_in_tag='psf_derot', 
                             selected_out_tag='psf_sliced', 
                             removed_out_tag='trash', 
                             frames=[0,1,37,38])
