@@ -4,11 +4,45 @@ import math
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
     AddFramesModule, RemoveFramesModule, FalsePositiveModule, AperturePhotometryModule, \
     DerotateAndStackModule
+from pynpoint.core.processing import ProcessingModule
 
 
 #Settings
 folder = "/data/zburr/yses_ifu/2nd_epoch/processed/2023-05-27/products/"
 pos_guess = (247., 146.)
+
+
+#Module to reshape arrays (to drop/add extra dimension)
+class ReshapeModule(ProcessingModule):
+
+    def __init__(self,
+                 name_in,
+                 image_in_tag,
+                 image_out_tag,
+                 shape
+                 ):
+
+        super(ReshapeModule, self).__init__(name_in)
+
+        self.m_in_port = self.add_input_port(image_in_tag)
+        self.m_out_port = self.add_output_port(image_out_tag)
+        
+        self.shape = shape
+
+    def run(self):
+        
+        image = self.m_in_port.get_all()
+        orig_shape = np.shape(image)
+        
+        reshaped = np.reshape(image, self.shape)
+        
+        self.m_out_port.set_all(reshaped)
+        
+        history = str(orig_shape)+'->'+str(self.shape)
+        self.m_out_port.copy_attributes(self.m_in_port)
+        self.m_out_port.add_history('ReshapeModule', history)
+
+        self.m_out_port.close_port()
 
 
 #Initialize pipeline
@@ -133,8 +167,15 @@ spectra = np.zeros((39, 3))
 spectra[:,0] = pipeline.get_attribute('science', 'WAVELENGTH', static=False)
 
 #measure companion spectrum
+module = ReshapeModule(name_in='shape_down_science', 
+                       image_in_tag='science_derot', 
+                       image_out_tag='science3D', 
+                       shape=(39,290,290))
+pipeline.add_module(module)
+pipeline.run_module('shape_down_science')
+
 module = AperturePhotometryModule(name_in='measure_companion', 
-                                  image_in_tag='science_derot', 
+                                  image_in_tag='science3D', 
                                   phot_out_tag='companion_phot',
                                   radius=0.15,
                                   position=pos_pix)
@@ -144,8 +185,15 @@ pipeline.run_module('measure_companion')
 spectra[:,1] = pipeline.get_data('companion_phot')
 
 #measure star spectrum
+module = ReshapeModule(name_in='shape_down_psf', 
+                       image_in_tag='psf_derot', 
+                       image_out_tag='psf3D', 
+                       shape=(39,80,80))
+pipeline.add_module(module)
+pipeline.run_module('shape_down_psf')
+
 module = AperturePhotometryModule(name_in='measure_star', 
-                                  image_in_tag='psf_derot', 
+                                  image_in_tag='psf3D', 
                                   phot_out_tag='star_phot',
                                   radius=0.15,
                                   position=None)
