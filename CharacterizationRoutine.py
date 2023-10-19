@@ -9,7 +9,8 @@ from pynpoint.core.processing import ProcessingModule
 
 #Settings
 obs = '2023-05-27'
-pos_guess = (253., 162.)
+pos_guess = [(247., 146.), (253., 162.)]
+offset = 5
 
 folder = "/data/zburr/yses_ifu/2nd_epoch/processed/"+obs+"/products/"
 
@@ -97,7 +98,7 @@ pipeline.add_module(module)
 pipeline.run_module('wavelengthpsf')
 
 
-## Coadd images ##
+## Prepare images ##
 #coadd science
 module = DerotateAndStackModule(name_in='derotate_science',
                                 image_in_tag='science',
@@ -120,6 +121,13 @@ module = AddFramesModule(name_in='coadd_science',
                          image_out_tag='science_coadd')
 pipeline.add_module(module)
 pipeline.run_module('coadd_science')
+
+module = ReshapeModule(name_in='shape_down_science', 
+                       image_in_tag='science_derot', 
+                       image_out_tag='science3D', 
+                       shape=(39,290,290))
+pipeline.add_module(module)
+pipeline.run_module('shape_down_science')
 
 #coadd psf
 module = DerotateAndStackModule(name_in='derotate_psf',
@@ -144,56 +152,17 @@ module = AddFramesModule(name_in='coadd_psf',
 pipeline.add_module(module)
 pipeline.run_module('coadd_psf')
 
-
-## Find position ##
-module = FalsePositiveModule(name_in='find_companion',
-                             image_in_tag='science_coadd',
-                             snr_out_tag='companion_snr', 
-                             position=pos_guess,
-                             aperture=0.15,
-                             optimize=True,
-                             tolerance=0.01,
-                             offset=5)
-pipeline.add_module(module)
-pipeline.run_module('find_companion')
-
-snr = pipeline.get_data('companion_snr')[0]
-print('x position (pix), y position (pix), separation (arcsec), position angle (deg), SNR, FPF')
-print(snr)
-pos_pix = (snr[0], snr[1])
-sep = snr[2]
-angle = snr[3]
-
-
-## Measure spectra ##
-spectra = np.zeros((39, 3))
-spectra[:,0] = pipeline.get_attribute('science', 'WAVELENGTH', static=False)
-
-#measure companion spectrum
-module = ReshapeModule(name_in='shape_down_science', 
-                       image_in_tag='science_derot', 
-                       image_out_tag='science3D', 
-                       shape=(39,290,290))
-pipeline.add_module(module)
-pipeline.run_module('shape_down_science')
-
-module = AperturePhotometryModule(name_in='measure_companion', 
-                                  image_in_tag='science3D', 
-                                  phot_out_tag='companion_phot',
-                                  radius=0.15,
-                                  position=pos_pix)
-pipeline.add_module(module)
-pipeline.run_module('measure_companion')
-
-spectra[:,1] = pipeline.get_data('companion_phot')[:,0]
-
-#measure star spectrum
 module = ReshapeModule(name_in='shape_down_psf', 
                        image_in_tag='psf_derot', 
                        image_out_tag='psf3D', 
                        shape=(39,80,80))
 pipeline.add_module(module)
 pipeline.run_module('shape_down_psf')
+
+
+## Measure star spectrum ##
+spectra = np.zeros((39, 2+len(pos_guess)))
+spectra[:,0] = pipeline.get_attribute('science', 'WAVELENGTH', static=False)
 
 module = AperturePhotometryModule(name_in='measure_star', 
                                   image_in_tag='psf3D', 
@@ -203,21 +172,56 @@ module = AperturePhotometryModule(name_in='measure_star',
 pipeline.add_module(module)
 pipeline.run_module('measure_star')
 
-spectra[:,2] = pipeline.get_data('star_phot')[:,0]
+spectra[:,1] = pipeline.get_data('star_phot')[:,0]
+star_tot = sum(spectra[2:-2,1])
 
 
-## Output data ##
-companion_tot = sum(spectra[2:-2,1])
-star_tot = sum(spectra[2:-2,2])
-try:
-    mag = -2.5*math.log10(companion_tot/star_tot)
-except:
-    mag = 0
-    print('Error with companion or star flux measurements')
+## Loop for multiple companions ##
+data = np.full((5,2+len(pos_guess)), np.nan)
+for i, guess in enumerate(pos_guess):
+    #find position
+    module = FalsePositiveModule(name_in='find_companion',
+                                 image_in_tag='science_coadd',
+                                 snr_out_tag='companion_snr', 
+                                 position=guess,
+                                 aperture=0.15,
+                                 optimize=True,
+                                 tolerance=0.01,
+                                 offset=offset)
+    pipeline.add_module(module)
+    pipeline.run_module('find_companion')
+    
+    snr = pipeline.get_data('companion_snr')[0]
+    # print('x position (pix), y position (pix), separation (arcsec), position angle (deg), SNR, FPF')
+    # print(snr)
+    pos_pix = (snr[0], snr[1]) #position in pixels
+    
+    data[0, i+2] = snr[2] #sep
+    data[1, i+2] = snr[3] #angle
+    data[3, i+2] = snr[4] #snr
+    data[4, i+2] = snr[5] #fpf
+    
+    
+    #measure companion spectrum
+    module = AperturePhotometryModule(name_in='measure_companion', 
+                                      image_in_tag='science3D', 
+                                      phot_out_tag='companion_phot',
+                                      radius=0.15,
+                                      position=pos_pix)
+    pipeline.add_module(module)
+    pipeline.run_module('measure_companion')
+    
+    spectra[:,i+2] = pipeline.get_data('companion_phot')[:,0]
+    
+    
+    #measure 
+    companion_tot = sum(spectra[2:-2,i+2])
+    try:
+        data[2, i+2] = -2.5*math.log10(companion_tot/star_tot)
+    except:
+        print('Error with companion or star flux measurements')
 
-data = np.array([sep, angle, mag])
-print('sep, angle, mag')
-print(data)
-data = np.vstack((data, spectra))
 
+## Format and output data ##
+data = np.vstack((data,spectra))
 np.savetxt(folder+obs+'_companion_data.txt', data)

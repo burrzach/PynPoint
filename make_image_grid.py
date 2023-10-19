@@ -78,12 +78,16 @@ for n in range(len(image_indices)):
 obs = "2023-05-27"
 file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"+obs+"_companion_data.txt"
 data = np.genfromtxt(file)
-head = data[0]
-spectra = data[1:]
+head = data[:5]
+spectra = data[5:]
+print(head)
+print(len(spectra))
 spectra = spectra[spectra[:,0].argsort()]
+wl = spectra[:,0] / 1e3
 
-plt.plot(spectra[:,0] / 1e3, spectra[:,1], marker='o', label='companion')
-plt.plot(spectra[:,0] / 1e3, spectra[:,2], marker='o', label='host star')
+plt.plot(wl, spectra[:,1], marker='o', label='host star')
+plt.plot(wl, spectra[:,2], marker='o', label='companion 1')
+plt.plot(wl, spectra[:,3], marker='o', label='companion 2')
 plt.legend()
 plt.yscale('log')
 plt.xlabel('$\lambda$ $[\mu m]$')
