@@ -173,7 +173,7 @@ pipeline.run_module('shape_down_psf')
 
 ## Measure star spectrum ##
 spectra = np.zeros((39, 2+len(pos_guess)))
-spectra[:,0] = pipeline.get_attribute('science', 'WAVELENGTH', static=False)
+spectra[:,0] = pipeline.get_attribute('psf', 'WAVELENGTH', static=False)
 
 module = AperturePhotometryModule(name_in='measure_star', 
                                   image_in_tag='psf3D', 
