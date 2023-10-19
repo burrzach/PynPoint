@@ -8,8 +8,10 @@ from pynpoint.core.processing import ProcessingModule
 
 
 #Settings
-folder = "/data/zburr/yses_ifu/2nd_epoch/processed/2023-05-27/products/"
+obs = '2023-05-27'
 pos_guess = (247., 146.)
+
+folder = "/data/zburr/yses_ifu/2nd_epoch/processed/"+obs+"/products/"
 
 
 #Module to reshape arrays (to drop/add extra dimension)
@@ -147,7 +149,8 @@ pipeline.run_module('coadd_psf')
 module = FalsePositiveModule(name_in='find_companion',
                              image_in_tag='science_coadd',
                              snr_out_tag='companion_snr', 
-                             position=pos_guess, 
+                             position=pos_guess,
+                             aperture=0.15,
                              optimize=True,
                              tolerance=0.01,
                              offset=50)
@@ -217,4 +220,4 @@ print('sep, angle, mag')
 print(data)
 data = np.vstack((data, spectra))
 
-np.savetxt(folder+'companion_data.txt', data)
+np.savetxt(folder+obs+'_companion_data.txt', data)

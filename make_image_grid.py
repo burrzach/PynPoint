@@ -75,7 +75,8 @@ for n in range(len(image_indices)):
 
 
 #%%
-file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companion_data.txt"
+obs = "2023-05-27"
+file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"+obs+"_companion_data.txt"
 data = np.genfromtxt(file)
 head = data[0]
 spectra = data[1:]
@@ -86,4 +87,5 @@ plt.plot(spectra[:,0] / 1e3, spectra[:,2], marker='o', label='host star')
 plt.legend()
 plt.yscale('log')
 plt.xlabel('$\lambda$ $[\mu m]$')
+plt.title(obs)
 plt.show()
