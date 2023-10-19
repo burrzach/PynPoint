@@ -8,10 +8,12 @@ from pynpoint.core.processing import ProcessingModule
 
 
 #Settings
-obs = '2023-07-26-1'
+obs = '2023-05-30-2'
 #pos_guess = [(247., 146.), (253., 162.)] #2023-05-27
-pos_guess = [(109., 58.)] #2023-07-26-1
+pos_guess = [(211.5, 176.5)] #2023-05-30-2
+#pos_guess = [(109., 58.)] #2023-07-26-1
 offset = 5
+radius = 0.1
 
 folder = "/data/zburr/yses_ifu/2nd_epoch/processed/"+obs+"/products/"
 
@@ -185,7 +187,7 @@ for i, guess in enumerate(pos_guess):
                                  image_in_tag='science_coadd',
                                  snr_out_tag='companion_snr', 
                                  position=guess,
-                                 aperture=0.15,
+                                 aperture=radius,
                                  optimize=True,
                                  tolerance=0.01,
                                  offset=offset)
@@ -207,7 +209,7 @@ for i, guess in enumerate(pos_guess):
     module = AperturePhotometryModule(name_in='measure_companion', 
                                       image_in_tag='science3D', 
                                       phot_out_tag='companion_phot',
-                                      radius=0.15,
+                                      radius=radius,
                                       position=pos_pix)
     pipeline.add_module(module)
     pipeline.run_module('measure_companion')
