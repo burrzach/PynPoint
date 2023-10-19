@@ -67,15 +67,22 @@ module = FitsReadingModule(name_in='read',
 pipeline.add_module(module)
 pipeline.run_module('read')
 
+module = ReshapeModule(name_in='reshape_science', 
+                       image_in_tag='science', 
+                       image_out_tag='science_reshape', 
+                       shape=(39,1,290,290))
+pipeline.add_module(module)
+pipeline.run_module('reshape_science')
+
 # module = ParangReadingModule(name_in='parang',
-#                              data_tag='science',
+#                              data_tag='science_reshape',
 #                              file_name=folder+'science_derot.fits')
 # pipeline.add_module(module)
 # pipeline.run_module('parang')
-pipeline.set_attribute('science', 'PARANG', [0.]*39, static=False)
+pipeline.set_attribute('science', 'PARANG', [0.], static=False)
 
 module = WavelengthReadingModule(name_in='wavelength',
-                                 data_tag='science',
+                                 data_tag='science_reshape',
                                  file_name=folder+'wavelength.fits')
 pipeline.add_module(module)
 pipeline.run_module('wavelength')
@@ -105,7 +112,7 @@ pipeline.run_module('wavelengthpsf')
 ## Prepare images ##
 #coadd science
 module = DerotateAndStackModule(name_in='derotate_science',
-                                image_in_tag='science',
+                                image_in_tag='science_reshape',
                                 image_out_tag='science_derot',
                                 derotate=True,
                                 stack=None)
