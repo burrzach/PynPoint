@@ -8,8 +8,9 @@ from pynpoint.core.processing import ProcessingModule
 
 
 #Settings
-obs = '2023-05-27'
-pos_guess = [(247., 146.), (253., 162.)]
+obs = '2023-07-26-1'
+#pos_guess = [(247., 146.), (253., 162.)] #2023-05-27
+pos_guess = [(109., 58.)] #2023-07-26-1
 offset = 5
 
 folder = "/data/zburr/yses_ifu/2nd_epoch/processed/"+obs+"/products/"
