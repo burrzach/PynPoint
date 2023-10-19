@@ -79,7 +79,7 @@ pipeline.run_module('reshape_science')
 #                              file_name=folder+'science_derot.fits')
 # pipeline.add_module(module)
 # pipeline.run_module('parang')
-pipeline.set_attribute('science', 'PARANG', [0.], static=False)
+pipeline.set_attribute('science_reshape', 'PARANG', [0.], static=False)
 
 module = WavelengthReadingModule(name_in='wavelength',
                                  data_tag='science_reshape',
