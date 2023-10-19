@@ -61,17 +61,18 @@ pipeline = Pypeline(working_place_in=folder,
 #read in science data
 module = FitsReadingModule(name_in='read',
                            image_tag='science',
-                           filenames=[folder+'science_cube.fits'],
+                           filenames=[folder+'residuals.fits'],
                            input_dir=None,
                            ifs_data=True)
 pipeline.add_module(module)
 pipeline.run_module('read')
 
-module = ParangReadingModule(name_in='parang',
-                             data_tag='science',
-                             file_name=folder+'science_derot.fits')
-pipeline.add_module(module)
-pipeline.run_module('parang')
+# module = ParangReadingModule(name_in='parang',
+#                              data_tag='science',
+#                              file_name=folder+'science_derot.fits')
+# pipeline.add_module(module)
+# pipeline.run_module('parang')
+pipeline.set_attribute('science', 'PARANG', [0.]*39, static=False)
 
 module = WavelengthReadingModule(name_in='wavelength',
                                  data_tag='science',
