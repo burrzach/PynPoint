@@ -9,7 +9,7 @@ from pynpoint.core.processing import ProcessingModule
 
 #Settings
 obs = '2023-05-27'
-pos_guess = (247., 146.)
+pos_guess = (253., 162.)
 
 folder = "/data/zburr/yses_ifu/2nd_epoch/processed/"+obs+"/products/"
 
@@ -153,7 +153,7 @@ module = FalsePositiveModule(name_in='find_companion',
                              aperture=0.15,
                              optimize=True,
                              tolerance=0.01,
-                             offset=50)
+                             offset=5)
 pipeline.add_module(module)
 pipeline.run_module('find_companion')
 
