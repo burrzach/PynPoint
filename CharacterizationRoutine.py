@@ -3,8 +3,9 @@ import numpy as np
 import math
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
     AddFramesModule, RemoveFramesModule, FalsePositiveModule, AperturePhotometryModule, \
-    DerotateAndStackModule
+    DerotateAndStackModule, FitCenterModule, ShiftImagesModule, TextWritingModule
 from pynpoint.core.processing import ProcessingModule
+import configparser
 
 
 #Settings
@@ -13,9 +14,19 @@ obs = '2023-05-30-2'
 pos_guess = [(211.5, 176.5)] #2023-05-30-2
 #pos_guess = [(109., 58.)] #2023-07-26-1
 offset = 5
-radius = 0.1
+radius = 0.025
 
 folder = "/data/zburr/yses_ifu/2nd_epoch/processed/"+obs+"/products/"
+
+
+#Set configuration file
+config = configparser.ConfigParser()
+config.add_section('header')
+config.add_section('settings')
+config['settings']['PIXSCALE'] = str(1.73/290)
+
+with open(folder+'PynPoint_config.ini', 'w') as configfile:
+    config.write(configfile)
 
 
 #Module to reshape arrays (to drop/add extra dimension)
@@ -60,26 +71,26 @@ pipeline = Pypeline(working_place_in=folder,
 ## Load in images ##
 #read in science data
 module = FitsReadingModule(name_in='read',
-                           image_tag='science',
-                           filenames=[folder+'residuals.fits'],
+                           image_tag='science_reshape',
+                           filenames=[folder+'science_cube.fits'],
                            input_dir=None,
                            ifs_data=True)
 pipeline.add_module(module)
 pipeline.run_module('read')
 
-module = ReshapeModule(name_in='reshape_science', 
-                       image_in_tag='science', 
-                       image_out_tag='science_reshape', 
-                       shape=(39,1,290,290))
-pipeline.add_module(module)
-pipeline.run_module('reshape_science')
-
-# module = ParangReadingModule(name_in='parang',
-#                              data_tag='science_reshape',
-#                              file_name=folder+'science_derot.fits')
+# module = ReshapeModule(name_in='reshape_science',  #for residuals, because they are 1x39x290x290
+#                        image_in_tag='science', 
+#                        image_out_tag='science_reshape', 
+#                        shape=(39,1,290,290))
 # pipeline.add_module(module)
-# pipeline.run_module('parang')
-pipeline.set_attribute('science_reshape', 'PARANG', [0.], static=False)
+# pipeline.run_module('reshape_science')
+
+module = ParangReadingModule(name_in='parang',
+                              data_tag='science_reshape',
+                              file_name=folder+'science_derot.fits')
+pipeline.add_module(module)
+pipeline.run_module('parang')
+# pipeline.set_attribute('science_reshape', 'PARANG', [0.], static=False) #for when using (derotated) resids
 
 module = WavelengthReadingModule(name_in='wavelength',
                                  data_tag='science_reshape',
@@ -119,8 +130,23 @@ module = DerotateAndStackModule(name_in='derotate_science',
 pipeline.add_module(module)
 pipeline.run_module('derotate_science')
 
+module = FitCenterModule(name_in='fit',
+                         image_in_tag='science_derot',
+                         fit_out_tag='science_centering',
+                         mask_radii=(None,0.5),
+                         sign='negative',
+                         model='gaussian',
+                         filter_size=None)
+pipeline.add_module(module)
+pipeline.run_module('fit')
+
+module = ShiftImagesModule(name_in='center', 
+                           image_in_tag='science_derot', 
+                           image_out_tag='science_centered', 
+                           shift_xy='science_centering')
+
 module = RemoveFramesModule(name_in='slice_science', 
-                            image_in_tag='science_derot', 
+                            image_in_tag='science_centered', 
                             selected_out_tag='science_sliced', 
                             removed_out_tag='trash', 
                             frames=[0,1,37,38])
@@ -134,7 +160,7 @@ pipeline.add_module(module)
 pipeline.run_module('coadd_science')
 
 module = ReshapeModule(name_in='shape_down_science', 
-                       image_in_tag='science_derot', 
+                       image_in_tag='science_centered', 
                        image_out_tag='science3D', 
                        shape=(39,290,290))
 pipeline.add_module(module)
@@ -178,7 +204,7 @@ spectra[:,0] = pipeline.get_attribute('psf', 'WAVELENGTH', static=False)
 module = AperturePhotometryModule(name_in='measure_star', 
                                   image_in_tag='psf3D', 
                                   phot_out_tag='star_phot',
-                                  radius=0.15,
+                                  radius=0.035,
                                   position=None)
 pipeline.add_module(module)
 pipeline.run_module('measure_star')
@@ -236,3 +262,13 @@ for i, guess in enumerate(pos_guess):
 ## Format and output data ##
 data = np.vstack((data,spectra))
 np.savetxt(folder+obs+'_companion_data.txt', data)
+
+module = TextWritingModule(name_in='write_centering', 
+                           data_tag='sciece_centering', 
+                           file_name=folder+obs+'_centering_data.txt',
+                           header='#x offset (pix), x offset err (pix),'+\
+                                  ' y offset (pix), y offset err (pix),'+\
+                                  ' FWHM major axis (arcsec), FWHM major axis err (arcsec),'+\
+                                  ' FWHM minor axis (arcsec), FWHM minor axis err (arcsec),'+\
+                                  ' amp (ADU), amp err (ADU), angle (deg), angle err (deg),'+\
+                                  ' offset (ADU), offset err (ADU)')

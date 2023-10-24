@@ -75,10 +75,11 @@ for n in range(len(image_indices)):
 
 
 #%%
-obs = "2023-05-27"
+obs = "2023-07-26-1"
 file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"+obs+"_companion_data.txt"
 data = np.genfromtxt(file)
 
+print(obs)
 head = data[:5]
 print('sep, angle, mag, snr, fpf')
 if len(data[0]) > 3:
