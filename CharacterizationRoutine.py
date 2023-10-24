@@ -151,6 +151,8 @@ module = ShiftImagesModule(name_in='center',
                            image_in_tag='science3D', 
                            image_out_tag='science_centered', 
                            shift_xy='science_centering')
+pipeline.add_module(module)
+pipeline.run_module('center')
 
 module = RemoveFramesModule(name_in='slice_science', 
                             image_in_tag='science_centered', 
