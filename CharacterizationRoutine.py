@@ -154,6 +154,13 @@ module = ShiftImagesModule(name_in='center',
 pipeline.add_module(module)
 pipeline.run_module('center')
 
+module = ReshapeModule(name_in='shape_up_science', 
+                       image_in_tag='science_centered', 
+                       image_out_tag='science4D', 
+                       shape=(39,1,290,290))
+pipeline.add_module(module)
+pipeline.run_module('shape_up_science')
+
 module = RemoveFramesModule(name_in='slice_science', 
                             image_in_tag='science_centered', 
                             selected_out_tag='science_sliced', 
