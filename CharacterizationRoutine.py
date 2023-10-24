@@ -281,3 +281,5 @@ module = TextWritingModule(name_in='write_centering',
                                   ' FWHM minor axis (arcsec), FWHM minor axis err (arcsec),'+\
                                   ' amp (ADU), amp err (ADU), angle (deg), angle err (deg),'+\
                                   ' offset (ADU), offset err (ADU)')
+pipeline.add_module(module)
+pipeline.run_module('write_centering')
