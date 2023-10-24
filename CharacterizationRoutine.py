@@ -273,7 +273,7 @@ data = np.vstack((data,spectra))
 np.savetxt(folder+obs+'_companion_data.txt', data)
 
 module = TextWritingModule(name_in='write_centering', 
-                           data_tag='sciece_centering', 
+                           data_tag='science_centering', 
                            file_name=folder+obs+'_centering_data.txt',
                            header='#x offset (pix), x offset err (pix),'+\
                                   ' y offset (pix), y offset err (pix),'+\
