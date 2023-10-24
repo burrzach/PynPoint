@@ -130,8 +130,15 @@ module = DerotateAndStackModule(name_in='derotate_science',
 pipeline.add_module(module)
 pipeline.run_module('derotate_science')
 
+module = ReshapeModule(name_in='shape_down_science', 
+                       image_in_tag='science_derot', 
+                       image_out_tag='science3D', 
+                       shape=(39,290,290))
+pipeline.add_module(module)
+pipeline.run_module('shape_down_science')
+
 module = FitCenterModule(name_in='fit',
-                         image_in_tag='science_derot',
+                         image_in_tag='science3D',
                          fit_out_tag='science_centering',
                          mask_radii=(None,0.5),
                          sign='negative',
@@ -141,7 +148,7 @@ pipeline.add_module(module)
 pipeline.run_module('fit')
 
 module = ShiftImagesModule(name_in='center', 
-                           image_in_tag='science_derot', 
+                           image_in_tag='science3D', 
                            image_out_tag='science_centered', 
                            shift_xy='science_centering')
 
@@ -158,13 +165,6 @@ module = AddFramesModule(name_in='coadd_science',
                          image_out_tag='science_coadd')
 pipeline.add_module(module)
 pipeline.run_module('coadd_science')
-
-module = ReshapeModule(name_in='shape_down_science', 
-                       image_in_tag='science_centered', 
-                       image_out_tag='science3D', 
-                       shape=(39,290,290))
-pipeline.add_module(module)
-pipeline.run_module('shape_down_science')
 
 #coadd psf
 module = DerotateAndStackModule(name_in='derotate_psf',
@@ -241,7 +241,7 @@ for i, guess in enumerate(pos_guess):
     
     #measure companion spectrum
     module = AperturePhotometryModule(name_in='measure_companion', 
-                                      image_in_tag='science3D', 
+                                      image_in_tag='science_centered', 
                                       phot_out_tag='companion_phot',
                                       radius=radius,
                                       position=pos_pix)
