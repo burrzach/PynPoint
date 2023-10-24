@@ -162,7 +162,7 @@ pipeline.add_module(module)
 pipeline.run_module('shape_up_science')
 
 module = RemoveFramesModule(name_in='slice_science', 
-                            image_in_tag='science_centered', 
+                            image_in_tag='science4D', 
                             selected_out_tag='science_sliced', 
                             removed_out_tag='trash', 
                             frames=[0,1,37,38])
