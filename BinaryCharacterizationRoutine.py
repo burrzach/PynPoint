@@ -11,7 +11,7 @@ import configparser
 
 
 #folder ="D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/2023-06-15-1/"
-folder = "/home/zburr/PynPoint/2023-06-15-1/"
+folder = "/home/zburr/PynPoint/6-15-1/"
 
 
 #Set configuration file
