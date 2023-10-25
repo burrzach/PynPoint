@@ -9,10 +9,10 @@ import configparser
 
 
 #Settings
-obs = '2023-05-30-2'
+obs = '2023-07-26-1'
 #pos_guess = [(247., 146.), (253., 162.)] #2023-05-27
-pos_guess = [(211.5, 176.5)] #2023-05-30-2
-#pos_guess = [(109., 58.)] #2023-07-26-1
+#pos_guess = [(211.5, 176.5)] #2023-05-30-2
+pos_guess = [(109., 58.)] #2023-07-26-1
 offset = 5
 radius = 0.025
 
@@ -130,39 +130,39 @@ module = DerotateAndStackModule(name_in='derotate_science',
 pipeline.add_module(module)
 pipeline.run_module('derotate_science')
 
-module = ReshapeModule(name_in='shape_down_science', 
-                       image_in_tag='science_derot', 
-                       image_out_tag='science3D', 
-                       shape=(39,290,290))
-pipeline.add_module(module)
-pipeline.run_module('shape_down_science')
+# module = ReshapeModule(name_in='shape_down_science', 
+#                        image_in_tag='science_derot', 
+#                        image_out_tag='science3D', 
+#                        shape=(39,290,290))
+# pipeline.add_module(module)
+# pipeline.run_module('shape_down_science')
 
-module = FitCenterModule(name_in='fit',
-                         image_in_tag='science3D',
-                         fit_out_tag='science_centering',
-                         mask_radii=(None,0.5),
-                         sign='negative',
-                         model='gaussian',
-                         filter_size=None)
-pipeline.add_module(module)
-pipeline.run_module('fit')
+# module = FitCenterModule(name_in='fit',
+#                          image_in_tag='science3D',
+#                          fit_out_tag='science_centering',
+#                          mask_radii=(None,0.5),
+#                          sign='negative',
+#                          model='gaussian',
+#                          filter_size=None)
+# pipeline.add_module(module)
+# pipeline.run_module('fit')
 
-module = ShiftImagesModule(name_in='center', 
-                           image_in_tag='science3D', 
-                           image_out_tag='science_centered', 
-                           shift_xy='science_centering')
-pipeline.add_module(module)
-pipeline.run_module('center')
+# module = ShiftImagesModule(name_in='center', 
+#                            image_in_tag='science3D', 
+#                            image_out_tag='science_centered', 
+#                            shift_xy='science_centering')
+# pipeline.add_module(module)
+# pipeline.run_module('center')
 
-module = ReshapeModule(name_in='shape_up_science', 
-                       image_in_tag='science_centered', 
-                       image_out_tag='science4D', 
-                       shape=(39,1,290,290))
-pipeline.add_module(module)
-pipeline.run_module('shape_up_science')
+# module = ReshapeModule(name_in='shape_up_science', 
+#                        image_in_tag='science_centered', 
+#                        image_out_tag='science4D', 
+#                        shape=(39,1,290,290))
+# pipeline.add_module(module)
+# pipeline.run_module('shape_up_science') #!!!
 
 module = RemoveFramesModule(name_in='slice_science', 
-                            image_in_tag='science4D', 
+                            image_in_tag='science_derot', 
                             selected_out_tag='science_sliced', 
                             removed_out_tag='trash', 
                             frames=[0,1,37,38])
@@ -222,6 +222,18 @@ spectra[:,1] = pipeline.get_data('star_phot')[:,0]
 star_tot = sum(spectra[2:-2,1])
 
 
+## Find planet position ## #!!!
+module = FitCenterModule(name_in='fit',
+                         image_in_tag='science_coadd',
+                         fit_out_tag='science_centering',
+                         mask_radii=(None,0.85),
+                         sign='positive',
+                         model='gaussian',
+                         filter_size=None)
+pipeline.add_module(module)
+pipeline.run_module('fit')
+
+
 ## Loop for multiple companions ##
 data = np.full((5,2+len(pos_guess)), np.nan)
 for i, guess in enumerate(pos_guess):
@@ -241,6 +253,7 @@ for i, guess in enumerate(pos_guess):
     # print('x position (pix), y position (pix), separation (arcsec), position angle (deg), SNR, FPF')
     # print(snr)
     pos_pix = (snr[0], snr[1]) #position in pixels
+    pos_pix = guess #!!!
     
     data[0, i+2] = snr[2] #sep
     data[1, i+2] = snr[3] #angle
