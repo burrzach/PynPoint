@@ -152,7 +152,8 @@ pipeline.run_module('repeat')
 
 module = SubtractImagesModule(name_in='subtract',
                               image_in_tags=('science_centered', 'coadd_repeat'),
-                              image_out_tag='science_subtracted')
+                              image_out_tag='science_subtracted',
+                              scaling=1/37)
 pipeline.add_module(module)
 pipeline.run_module('subtract')
 
