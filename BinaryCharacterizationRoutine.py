@@ -4,7 +4,7 @@ import math
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
     AddFramesModule, RemoveFramesModule, FalsePositiveModule, AperturePhotometryModule, \
     DerotateAndStackModule, FitCenterModule, ShiftImagesModule, SubtractImagesModule, \
-    FitsWritingModule
+    FitsWritingModule, RepeatImagesModule
         
 from pynpoint.core.processing import ProcessingModule
 import configparser
@@ -143,8 +143,15 @@ pipeline.run_module('coadd_science')
 
 
 ## Subtract out binary ##
+module = RepeatImagesModule(name_in='repeat', 
+                            image_in_tag='science_coadd', 
+                            image_out_tag='coadd_repeat', 
+                            repeat=38)
+pipeline.add_module(module)
+pipeline.run_module('repeat')
+
 module = SubtractImagesModule(name_in='subtract',
-                              image_in_tags=('science_centered', 'science_coadd'),
+                              image_in_tags=('science_centered', 'coadd_repeat'),
                               image_out_tag='science_subtracted')
 pipeline.add_module(module)
 pipeline.run_module('subtract')
