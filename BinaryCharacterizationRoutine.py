@@ -146,7 +146,7 @@ pipeline.run_module('coadd_science')
 module = RepeatImagesModule(name_in='repeat', 
                             image_in_tag='science_coadd', 
                             image_out_tag='coadd_repeat', 
-                            repeat=38)
+                            repeat=39)
 pipeline.add_module(module)
 pipeline.run_module('repeat')
 
