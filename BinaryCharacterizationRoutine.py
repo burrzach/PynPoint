@@ -135,17 +135,10 @@ module = RemoveFramesModule(name_in='slice_science',
 pipeline.add_module(module)
 pipeline.run_module('slice_science')
 
-# module = AddFramesModule(name_in='coadd_science', 
-#                          image_in_tag='science_sliced', 
-#                          image_out_tag='science_coadd')
-# pipeline.add_module(module)
-# pipeline.run_module('coadd_science')
-
-module = DerotateAndStackModule(name_in='coadd_science',
-                                image_in_tag='science_sliced',
-                                image_out_tag='science_coadd',
-                                derotate=False,
-                                stack='mean')
+module = AddFramesModule(name_in='coadd_science', 
+                          image_in_tag='science_sliced', 
+                          image_out_tag='science_coadd',
+                          scaling=1/35)
 pipeline.add_module(module)
 pipeline.run_module('coadd_science')
 
