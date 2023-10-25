@@ -130,12 +130,12 @@ module = DerotateAndStackModule(name_in='derotate_science',
 pipeline.add_module(module)
 pipeline.run_module('derotate_science')
 
-# module = ReshapeModule(name_in='shape_down_science', 
-#                        image_in_tag='science_derot', 
-#                        image_out_tag='science3D', 
-#                        shape=(39,290,290))
-# pipeline.add_module(module)
-# pipeline.run_module('shape_down_science')
+module = ReshapeModule(name_in='shape_down_science', 
+                        image_in_tag='science_derot', 
+                        image_out_tag='science3D', 
+                        shape=(39,290,290))
+pipeline.add_module(module)
+pipeline.run_module('shape_down_science')
 
 # module = FitCenterModule(name_in='fit',
 #                          image_in_tag='science3D',
@@ -263,7 +263,7 @@ for i, guess in enumerate(pos_guess):
     
     #measure companion spectrum
     module = AperturePhotometryModule(name_in='measure_companion', 
-                                      image_in_tag='science_centered', 
+                                      image_in_tag='science3D', 
                                       phot_out_tag='companion_phot',
                                       radius=radius,
                                       position=pos_pix)
