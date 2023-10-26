@@ -345,49 +345,49 @@ for i, guess in enumerate(pos_guess):
         
         
     #remove companion to fit next companion
-    if i != len(pos_guess)-1:
-        module = CropImagesModule(name_in='crop', 
-                                  image_in_tag='science_coadd', 
-                                  image_out_tag='planet_crop', 
-                                  size=radius*3., 
-                                  center=(int(pos_pix[0]), int(pos_pix[1])))
-        pipeline.add_module(module)
-        pipeline.run_module('crop')
+    # if i != len(pos_guess)-1:
+    #     module = CropImagesModule(name_in='crop', 
+    #                               image_in_tag='science_coadd', 
+    #                               image_out_tag='planet_crop', 
+    #                               size=radius*3., 
+    #                               center=(int(pos_pix[0]), int(pos_pix[1])))
+    #     pipeline.add_module(module)
+    #     pipeline.run_module('crop')
         
-        pic = pipeline.get_data('planet_crop')
-        lines = (290 - pic.shape[-1]) / 2
-        if lines % 1 != 0:
-            linesa = int(lines)
-            linesb = int(lines) + 1
-        else:
-            linesa = lines
-            linesb = lines
+    #     pic = pipeline.get_data('planet_crop')
+    #     lines = (290 - pic.shape[-1]) / 2
+    #     if lines % 1 != 0:
+    #         linesa = int(lines)
+    #         linesb = int(lines) + 1
+    #     else:
+    #         linesa = lines
+    #         linesb = lines
             
-        module = AddLinesModule(name_in='pad', 
-                                image_in_tag='planet_crop', 
-                                image_out_tag='planet', 
-                                lines=(linesa, linesb, linesa, linesb))
-        pipeline.add_module(module)
-        pipeline.run_module('pad')
+    #     module = AddLinesModule(name_in='pad', 
+    #                             image_in_tag='planet_crop', 
+    #                             image_out_tag='planet', 
+    #                             lines=(linesa, linesb, linesa, linesb))
+    #     pipeline.add_module(module)
+    #     pipeline.run_module('pad')
         
-        module = FakePlanetModule(name_in='fake',
-                                  image_in_tag=science_image, 
-                                  psf_in_tag='planet', 
-                                  image_out_tag=image_out, 
-                                  position=tuple(pos_pol), 
-                                  magnitude=0.,
-                                  psf_scaling=-1.)
-        pipeline.add_module(module)
-        pipeline.run_module('fake')
+    #     module = FakePlanetModule(name_in='fake',
+    #                               image_in_tag=science_image, 
+    #                               psf_in_tag='planet', 
+    #                               image_out_tag=image_out, 
+    #                               position=tuple(pos_pol), 
+    #                               magnitude=0.,
+    #                               psf_scaling=-1.)
+    #     pipeline.add_module(module)
+    #     pipeline.run_module('fake')
         
-        science_image = image_out
-        image_out = str(int(image_out)+1)
+    #     science_image = image_out
+    #     image_out = str(int(image_out)+1)
         
-        module = FitsWritingModule(name_in='write_removed', 
-                                   data_tag=science_image, 
-                                   file_name=folder+obs+'_removed.fits')
-        pipeline.add_module(module)
-        pipeline.run_module('write_removed')
+    #     module = FitsWritingModule(name_in='write_removed', 
+    #                                data_tag=science_image, 
+    #                                file_name=folder+obs+'_removed.fits')
+    #     pipeline.add_module(module)
+    #     pipeline.run_module('write_removed')
         
         
 
