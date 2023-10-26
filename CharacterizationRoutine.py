@@ -350,7 +350,7 @@ for i, guess in enumerate(pos_guess):
                                   size=radius*2.5, 
                                   center=(int(pos_pix[0]), int(pos_pix[1])))
         pipeline.add_module(module)
-        pipeline.run_moudle('crop')
+        pipeline.run_module('crop')
         
         pic = pipeline.get_data(image_out)
         lines = (290 - pic.shape[0]) % 2
