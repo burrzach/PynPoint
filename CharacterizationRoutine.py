@@ -282,13 +282,15 @@ for i, guess in enumerate(pos_guess):
             
             
     #find planet position
+    angle = cartesian_to_polar(center, guess[1], guess[0])[1]
     module = FitCenterModule(name_in='fit',
                              image_in_tag=science_image,
                              fit_out_tag='companion_pos',
                              mask_radii=(None,1.2),
                              sign='positive',
                              model='gaussian',
-                             filter_size=None)
+                             filter_size=0.01,
+                             guess=(guess[0]-center[0], guess[1]-center[1], 5., 5., 5000., angle, 0., 0.))
     pipeline.add_module(module)
     pipeline.run_module('fit')
 
@@ -347,7 +349,7 @@ for i, guess in enumerate(pos_guess):
         module = CropImagesModule(name_in='crop', 
                                   image_in_tag='science_coadd', 
                                   image_out_tag='planet_crop', 
-                                  size=radius*2.5, 
+                                  size=radius*3., 
                                   center=(int(pos_pix[0]), int(pos_pix[1])))
         pipeline.add_module(module)
         pipeline.run_module('crop')
