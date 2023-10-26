@@ -190,21 +190,21 @@ module = ReshapeModule(name_in='shape_down_psf',
 pipeline.add_module(module)
 pipeline.run_module('shape_down_psf')
 
-#prepare psf for injecting as fake planet
-module = PSFpreparationModule(name_in='maskpsf', 
-                              image_in_tag='psf_coadd', 
-                              image_out_tag='psf_masked',
-                              cent_size=None,
-                              edge_size=0.045)
-pipeline.add_module(module)
-pipeline.run_module('maskpsf')
+# #prepare psf for injecting as fake planet
+# module = PSFpreparationModule(name_in='maskpsf', 
+#                               image_in_tag='psf_coadd', 
+#                               image_out_tag='psf_masked',
+#                               cent_size=None,
+#                               edge_size=0.045)
+# pipeline.add_module(module)
+# pipeline.run_module('maskpsf')
 
-module = AddLinesModule(name_in='pad', 
-                        image_in_tag='psf_masked', 
-                        image_out_tag='planet', 
-                        lines=(105,105,105,105))
-pipeline.add_module(module)
-pipeline.run_module('pad')
+# module = AddLinesModule(name_in='pad', 
+#                         image_in_tag='psf_masked', 
+#                         image_out_tag='planet', 
+#                         lines=(105,105,105,105))
+# pipeline.add_module(module)
+# pipeline.run_module('pad')
 
 
 ## Measure star spectrum ##
