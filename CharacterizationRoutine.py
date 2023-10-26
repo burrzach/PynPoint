@@ -16,7 +16,7 @@ pos_guess = [(247., 146.), (253., 162.)] #2023-05-27
 #pos_guess = [(211.5, 176.5)] #2023-05-30-2
 #pos_guess = [(109., 58.)] #2023-07-26-1
 #pos_guess = [(213.,90.), (224.,85.)] #2023-08-07-2
-radius = 0.025
+radius = 0.035
 scale = 1.73 / 290
 
 folder = "/data/zburr/yses_ifu/2nd_epoch/processed/"+obs+"/products/"
@@ -195,7 +195,7 @@ module = PSFpreparationModule(name_in='maskpsf',
                               image_in_tag='psf_coadd', 
                               image_out_tag='psf_masked',
                               cent_size=None,
-                              edge_size=0.035)
+                              edge_size=0.045)
 pipeline.add_module(module)
 pipeline.run_module('maskpsf')
 
