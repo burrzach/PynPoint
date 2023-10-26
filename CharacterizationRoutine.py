@@ -290,7 +290,7 @@ for i, guess in enumerate(pos_guess):
                              sign='positive',
                              model='gaussian',
                              filter_size=0.01,
-                             guess=(guess[0]-center[0], guess[1]-center[1], 5., 5., 5000., angle, 0., 0.))
+                             guess=(guess[0]-center[0], guess[1]-center[1], 5., 5., 5000., angle, 0.))
     pipeline.add_module(module)
     pipeline.run_module('fit')
 
