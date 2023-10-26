@@ -205,7 +205,7 @@ module = PSFpreparationModule(name_in='maskpsf',
                               image_in_tag='psf_coadd', 
                               image_out_tag='psf_masked',
                               cent_size=None,
-                              edge_size=0.035)
+                              edge_size=radius)
 pipeline.add_module(module)
 pipeline.run_module('maskpsf')
 
@@ -255,7 +255,7 @@ for i, guess in enumerate(pos_guess):
                                       psf_in_tag='planet', 
                                       image_out_tag=image_out, 
                                       position=inject_pos, 
-                                      magnitude=0.,
+                                      magnitude=1.5,
                                       psf_scaling=-1.)
             pipeline.add_module(module)
             pipeline.run_module('fake')
