@@ -3,8 +3,8 @@ import numpy as np
 import math
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
     AddFramesModule, RemoveFramesModule, FalsePositiveModule, AperturePhotometryModule, \
-    DerotateAndStackModule, FitCenterModule, ShiftImagesModule, TextWritingModule, \
-    FakePlanetModule, PSFpreparationModule, AddLinesModule
+    DerotateAndStackModule, FitCenterModule, FakePlanetModule, PSFpreparationModule, \
+    AddLinesModule
 from pynpoint.core.processing import ProcessingModule
 from pynpoint.util.image import cartesian_to_polar, center_subpixel
 import configparser
@@ -140,30 +140,6 @@ module = ReshapeModule(name_in='shape_down_science',
 pipeline.add_module(module)
 pipeline.run_module('shape_down_science')
 
-# module = FitCenterModule(name_in='fit',
-#                          image_in_tag='science3D',
-#                          fit_out_tag='science_centering',
-#                          mask_radii=(None,0.5),
-#                          sign='negative',
-#                          model='gaussian',
-#                          filter_size=None)
-# pipeline.add_module(module)
-# pipeline.run_module('fit')
-
-# module = ShiftImagesModule(name_in='center', 
-#                            image_in_tag='science3D', 
-#                            image_out_tag='science_centered', 
-#                            shift_xy='science_centering')
-# pipeline.add_module(module)
-# pipeline.run_module('center')
-
-# module = ReshapeModule(name_in='shape_up_science', 
-#                        image_in_tag='science_centered', 
-#                        image_out_tag='science4D', 
-#                        shape=(39,1,290,290))
-# pipeline.add_module(module)
-# pipeline.run_module('shape_up_science') #!!!
-
 module = RemoveFramesModule(name_in='slice_science', 
                             image_in_tag='science_derot', 
                             selected_out_tag='science_sliced', 
@@ -222,15 +198,15 @@ pipeline.run_module('shape_down_psf')
 #prepare psf for injecting as fake planet
 module = PSFpreparationModule(name_in='maskpsf', 
                               image_in_tag='psf_coadd', 
-                              image_out_tag='planet',
+                              image_out_tag='psf_masked',
                               cent_size=None,
                               edge_size=0.1)
 pipeline.add_module(module)
 pipeline.run_module('maskpsf')
 
 module = AddLinesModule(name_in='pad', 
-                        image_in_tag='planet', 
-                        image_out_tag='psf_resize', 
+                        image_in_tag='psf_masked', 
+                        image_out_tag='planet', 
                         lines=(105,105,105,105))
 pipeline.add_module(module)
 pipeline.run_module('pad')
