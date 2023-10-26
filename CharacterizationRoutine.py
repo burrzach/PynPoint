@@ -264,7 +264,7 @@ for i, guess in enumerate(pos_guess):
     module = FitCenterModule(name_in='fit',
                              image_in_tag=science_image,
                              fit_out_tag='companion_pos',
-                             mask_radii=(0.1,1.2),
+                             mask_radii=(None,1.2),
                              sign='positive',
                              model='gaussian',
                              filter_size=None)
