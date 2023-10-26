@@ -362,7 +362,7 @@ for i, guess in enumerate(pos_guess):
             linesb = lines
             
         module = AddLinesModule(name_in='pad', 
-                                image_in_tag=science_image, 
+                                image_in_tag='planet_crop', 
                                 image_out_tag='planet', 
                                 lines=(linesa, linesb, linesa, linesb))
         pipeline.add_module(module)
