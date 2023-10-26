@@ -352,7 +352,7 @@ for i, guess in enumerate(pos_guess):
         pipeline.add_module(module)
         pipeline.run_module('crop')
         
-        pic = pipeline.get_data(image_out)
+        pic = pipeline.get_data('planet_crop')
         lines = (290 - pic.shape[-1]) % 2
         if lines % 1 != 0:
             linesa = int(lines)
