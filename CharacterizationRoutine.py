@@ -11,10 +11,10 @@ import configparser
 
 
 #Settings
-obs = '2023-05-27'
-pos_guess = [(247., 146.), (253., 162.)] #2023-05-27
+obs = '2023-07-26-1'
+#pos_guess = [(247., 146.), (253., 162.)] #2023-05-27
 #pos_guess = [(211.5, 176.5)] #2023-05-30-2
-#pos_guess = [(109., 58.)] #2023-07-26-1
+pos_guess = [(109., 58.)] #2023-07-26-1
 #pos_guess = [(213.,90.), (224.,85.)] #2023-08-07-2
 radius = 0.025
 scale = 1.73 / 290
@@ -264,7 +264,7 @@ for i, guess in enumerate(pos_guess):
     module = FitCenterModule(name_in='fit',
                              image_in_tag=science_image,
                              fit_out_tag='companion_pos',
-                             mask_radii=(0.1,1.2),
+                             mask_radii=(None,1.2),
                              sign='positive',
                              model='gaussian',
                              filter_size=None)
