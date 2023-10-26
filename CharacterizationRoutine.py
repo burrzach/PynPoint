@@ -179,11 +179,22 @@ pipeline.add_module(module)
 pipeline.run_module('coadd_science')
 
 #coadd psf
+'''
 module = DerotateAndStackModule(name_in='derotate_psf',
                                 image_in_tag='psf',
                                 image_out_tag='psf_derot',
                                 derotate=True,
                                 stack=None)
+pipeline.add_module(module)
+pipeline.run_module('derotate_psf')
+'''
+
+module = DerotateAndStackModule(name_in='derotate_psf', #!!! only for 08-07-2, where psf has 3time slices
+                                image_in_tag='psf',
+                                image_out_tag='psf_derot',
+                                derotate=True,
+                                stack='median',
+                                dimension='time')
 pipeline.add_module(module)
 pipeline.run_module('derotate_psf')
 
