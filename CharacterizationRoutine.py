@@ -4,7 +4,7 @@ import math
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
     AddFramesModule, RemoveFramesModule, FalsePositiveModule, AperturePhotometryModule, \
     DerotateAndStackModule, FitCenterModule, FakePlanetModule, PSFpreparationModule, \
-    AddLinesModule
+    AddLinesModule, FitsWritingModule
 from pynpoint.core.processing import ProcessingModule
 from pynpoint.util.image import cartesian_to_polar, center_subpixel
 import configparser
@@ -256,6 +256,12 @@ for i, guess in enumerate(pos_guess):
             
             science_image = image_out
             image_out = image_out[:-1] + str(count)
+            
+            module = FitsWritingModule(name_in='write_removed', 
+                                       data_tag=science_image, 
+                                       file_name=folder+obs+'_'+science_image+'.fits')
+            pipeline.add_module(module)
+            pipeline.run_module('write_removed')
             
             
     #find planet position
