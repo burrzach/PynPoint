@@ -283,6 +283,7 @@ for i, guess in enumerate(pos_guess):
     data[2, i+2] = pos_pol[1] #angle
     data[3, i+2] = pos_err[1] #angle error
     
+    print('Companion '+str(i)+' position (pix, sep/angle): ', pos_pix, pos_pol)
     
     #measure snr
     module = FalsePositiveModule(name_in='find_companion',
