@@ -372,7 +372,7 @@ for i, guess in enumerate(pos_guess):
                                   image_in_tag=science_image, 
                                   psf_in_tag='planet', 
                                   image_out_tag=image_out, 
-                                  position=pos_pol, 
+                                  position=tuple(pos_pol), 
                                   magnitude=0.,
                                   psf_scaling=-1.)
         pipeline.add_module(module)
