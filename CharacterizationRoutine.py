@@ -264,7 +264,7 @@ for i, guess in enumerate(pos_guess):
                                       psf_in_tag='planet', 
                                       image_out_tag=image_out, 
                                       position=inject_pos, 
-                                      magnitude=2.,
+                                      magnitude=mag,
                                       psf_scaling=-1.)
             pipeline.add_module(module)
             pipeline.run_module('fake')
