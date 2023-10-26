@@ -190,21 +190,21 @@ module = ReshapeModule(name_in='shape_down_psf',
 pipeline.add_module(module)
 pipeline.run_module('shape_down_psf')
 
-# #prepare psf for injecting as fake planet
-# module = PSFpreparationModule(name_in='maskpsf', 
-#                               image_in_tag='psf_coadd', 
-#                               image_out_tag='psf_masked',
-#                               cent_size=None,
-#                               edge_size=0.045)
-# pipeline.add_module(module)
-# pipeline.run_module('maskpsf')
+#prepare psf for injecting as fake planet
+module = PSFpreparationModule(name_in='maskpsf', 
+                              image_in_tag='psf_coadd', 
+                              image_out_tag='psf_masked',
+                              cent_size=None,
+                              edge_size=0.045)
+pipeline.add_module(module)
+pipeline.run_module('maskpsf')
 
-# module = AddLinesModule(name_in='pad', 
-#                         image_in_tag='psf_masked', 
-#                         image_out_tag='planet', 
-#                         lines=(105,105,105,105))
-# pipeline.add_module(module)
-# pipeline.run_module('pad')
+module = AddLinesModule(name_in='pad', 
+                        image_in_tag='psf_masked', 
+                        image_out_tag='planet', 
+                        lines=(105,105,105,105))
+pipeline.add_module(module)
+pipeline.run_module('pad')
 
 
 ## Measure star spectrum ##
@@ -233,52 +233,52 @@ science_image = 'science_coadd'
 image_out = '0'
 for i, guess in enumerate(pos_guess):
     #remove all other planets
-    # science_image = 'science_coadd'
-    # image_out = 'removed1'
-    # count = 1
-    # for j, guess2 in enumerate(pos_guess):
-    #     if j != i:
-    #         count += 1
-    #         inject_pos = cartesian_to_polar(center, guess2[1], guess2[0])
-    #         inject_pos = (inject_pos[0]*scale, inject_pos[1])
+    science_image = 'science_coadd'
+    image_out = 'removed1'
+    count = 1
+    for j, guess2 in enumerate(pos_guess):
+        if j != i:
+            count += 1
+            inject_pos = cartesian_to_polar(center, guess2[1], guess2[0])
+            inject_pos = (inject_pos[0]*scale, inject_pos[1])
             
-    #         #measure companion to be removed
-    #         module = AperturePhotometryModule(name_in='measure_companion', 
-    #                                           image_in_tag='science3D', 
-    #                                           phot_out_tag='companion_phot',
-    #                                           radius=radius,
-    #                                           position=guess2)
-    #         pipeline.add_module(module)
-    #         pipeline.run_module('measure_companion')
+            #measure companion to be removed
+            module = AperturePhotometryModule(name_in='measure_companion', 
+                                              image_in_tag='science3D', 
+                                              phot_out_tag='companion_phot',
+                                              radius=radius,
+                                              position=guess2)
+            pipeline.add_module(module)
+            pipeline.run_module('measure_companion')
             
-    #         phot = pipeline.get_data('companion_phot')[:,0]
+            phot = pipeline.get_data('companion_phot')[:,0]
             
-    #         #calculate mag
-    #         companion_tot = sum(phot[2:-2])
-    #         try:
-    #             mag = -2.5*math.log10(companion_tot/star_tot)
-    #         except:
-    #             mag = 1.
+            #calculate mag
+            companion_tot = sum(phot[2:-2])
+            try:
+                mag = -2.5*math.log10(companion_tot/star_tot)
+            except:
+                mag = 1.
             
-    #         #inject negative fake planet of same magnitude
-    #         module = FakePlanetModule(name_in='fake',
-    #                                   image_in_tag=science_image, 
-    #                                   psf_in_tag='planet', 
-    #                                   image_out_tag=image_out, 
-    #                                   position=inject_pos, 
-    #                                   magnitude=mag,
-    #                                   psf_scaling=-1.)
-    #         pipeline.add_module(module)
-    #         pipeline.run_module('fake')
+            #inject negative fake planet of same magnitude
+            module = FakePlanetModule(name_in='fake',
+                                      image_in_tag=science_image, 
+                                      psf_in_tag='planet', 
+                                      image_out_tag=image_out, 
+                                      position=inject_pos, 
+                                      magnitude=mag,
+                                      psf_scaling=-1.)
+            pipeline.add_module(module)
+            pipeline.run_module('fake')
             
-    #         science_image = image_out
-    #         image_out = image_out[:-1] + str(count)
+            science_image = image_out
+            image_out = image_out[:-1] + str(count)
             
-    #         module = FitsWritingModule(name_in='write_removed', 
-    #                                     data_tag=science_image, 
-    #                                     file_name=folder+obs+'_'+science_image+'.fits')
-    #         pipeline.add_module(module)
-    #         pipeline.run_module('write_removed')
+            module = FitsWritingModule(name_in='write_removed', 
+                                        data_tag=science_image, 
+                                        file_name=folder+obs+'_'+science_image+'.fits')
+            pipeline.add_module(module)
+            pipeline.run_module('write_removed')
             
             
     #find planet position
