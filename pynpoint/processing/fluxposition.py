@@ -45,8 +45,7 @@ class FakePlanetModule(ProcessingModule):
                  position: Tuple[float, float],
                  magnitude: float,
                  psf_scaling: float = 1.,
-                 interpolation: str = 'spline',
-                 ifs_data: bool = False) -> None:
+                 interpolation: str = 'spline') -> None:
         """
         Parameters
         ----------
@@ -77,10 +76,6 @@ class FakePlanetModule(ProcessingModule):
         interpolation : str
             Type of interpolation that is used for shifting the
             images (spline, bilinear, or fft).
-        ifs_data : bool
-            Set to True when using IFS data which is stored as a 
-            4D array with the wavelength and temporal dimensions 
-            as first and second dimension, respectively.
 
         Returns
         -------
@@ -103,7 +98,6 @@ class FakePlanetModule(ProcessingModule):
         self.m_magnitude = magnitude
         self.m_psf_scaling = psf_scaling
         self.m_interpolation = interpolation
-        self.m_ifs_data = ifs_data
 
     @typechecked
     def run(self) -> None:
@@ -139,7 +133,7 @@ class FakePlanetModule(ProcessingModule):
                              'of frames in image_in_tag. The DerotateAndStackModule can be '
                              'used to average the PSF frames (without derotating) before applying '
                              'the FakePlanetModule.')
-        elif self.m_ifs_data and (psf_shape[1] != 1 and psf_shape[1] != im_shape[1]):
+        elif len(im_shape) == 4 and (psf_shape[1] != 1 and psf_shape[1] != im_shape[1]):
             raise ValueError('The number of frames in psf_in_tag does not match with the number '
                              'of frames in image_in_tag. The DerotateAndStackModule can be '
                              'used to average the PSF frames (without derotating) before applying '
@@ -169,10 +163,9 @@ class FakePlanetModule(ProcessingModule):
                                   position=self.m_position,
                                   magnitude=self.m_magnitude,
                                   psf_scaling=self.m_psf_scaling,
-                                  interpolation='spline',
-                                  ifs_data=self.m_ifs_data)
+                                  interpolation='spline')
 
-            self.m_image_out_port.append(im_fake, data_dim=3+self.m_ifs_data)
+            self.m_image_out_port.append(im_fake, data_dim=len(im_shape))
 
         history = f'(sep, angle, mag) = ({self.m_position[0]*pixscale:.2f}, ' \
                   f'{self.m_position[1]:.2f}, {self.m_magnitude:.2f})'
