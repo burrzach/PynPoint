@@ -277,6 +277,7 @@ for i, guess in enumerate(pos_guess):
             
     #find planet position
     angle = cartesian_to_polar(center, guess[1], guess[0])[1]
+    print(angle)
     module = FitCenterModule(name_in='fit',
                              image_in_tag=science_image,
                              fit_out_tag='companion_pos',
