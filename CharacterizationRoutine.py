@@ -291,6 +291,8 @@ for i, guess in enumerate(pos_guess):
     comp_fit = pipeline.get_data('companion_pos')[0]
     pos_pix = (comp_fit[0]+center[0], comp_fit[2]+center[1])
     
+    print(comp_fit)
+    
     data[0, i+2] = np.sqrt(comp_fit[0]**2 + comp_fit[2]**2) * scale #sep
     data[1, i+2] = np.sqrt(comp_fit[1]**2 + comp_fit[3]**2) * scale #sep error
     data[2, i+2] = comp_fit[10] #angle
