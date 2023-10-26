@@ -346,7 +346,7 @@ for i, guess in enumerate(pos_guess):
     if i != len(pos_guess)-1:
         module = CropImagesModule(name_in='crop', 
                                   image_in_tag=science_image, 
-                                  image_out_tag=image_out, 
+                                  image_out_tag='planet_crop', 
                                   size=radius*2.5, 
                                   center=(int(pos_pix[0]), int(pos_pix[1])))
         pipeline.add_module(module)
@@ -361,18 +361,12 @@ for i, guess in enumerate(pos_guess):
             linesa = lines
             linesb = lines
             
-        science_image = image_out
-        image_out = str(int(image_out)+1)
-            
         module = AddLinesModule(name_in='pad', 
                                 image_in_tag=science_image, 
-                                image_out_tag=image_out, 
+                                image_out_tag='planet', 
                                 lines=(linesa, linesb, linesa, linesb))
         pipeline.add_module(module)
         pipeline.run_module('pad')
-        
-        science_image = image_out
-        image_out = str(int(image_out)+1)
         
         module = FakePlanetModule(name_in='fake',
                                   image_in_tag=science_image, 
