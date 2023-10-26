@@ -228,7 +228,7 @@ center = center_subpixel(pic)
 
 
 ## Loop for multiple companions ##
-data = np.full((6,2+len(pos_guess)), np.nan)
+data = np.full((7,2+len(pos_guess)), np.nan)
 science_image = 'science_coadd'
 image_out = '0'
 for i, guess in enumerate(pos_guess):
@@ -274,19 +274,13 @@ for i, guess in enumerate(pos_guess):
             science_image = image_out
             image_out = image_out[:-1] + str(count)
             
-            module = FitsWritingModule(name_in='write_removed', 
-                                        data_tag=science_image, 
-                                        file_name=folder+obs+'_'+science_image+'.fits')
-            pipeline.add_module(module)
-            pipeline.run_module('write_removed')
-            
             
     #find planet position
     angle = cartesian_to_polar(center, guess[1], guess[0])[1]
     module = FitCenterModule(name_in='fit',
                              image_in_tag=science_image,
                              fit_out_tag='companion_pos',
-                             mask_radii=(None,1.2),
+                             mask_radii=(None,0.5),
                              sign='positive',
                              model='gaussian',
                              filter_size=0.01,
@@ -296,19 +290,12 @@ for i, guess in enumerate(pos_guess):
 
     comp_fit = pipeline.get_data('companion_pos')[0]
     pos_pix = (comp_fit[0]+center[0], comp_fit[2]+center[1])
-    pos_pol = np.array(cartesian_to_polar(center, pos_pix[1], pos_pix[0]))
-    pos_pol[0] *= scale
-
-    err1 = np.array(cartesian_to_polar(center, pos_pix[1]-comp_fit[3], pos_pix[0]-comp_fit[1]))
-    err2 = np.array(cartesian_to_polar(center, pos_pix[1]+comp_fit[3], pos_pix[0]+comp_fit[1]))
-    pos_err = abs(err1 - err2)
     
-    data[0, i+2] = pos_pol[0] #sep
-    data[1, i+2] = pos_err[0] #sep error
-    data[2, i+2] = pos_pol[1] #angle
-    data[3, i+2] = pos_err[1] #angle error
+    data[0, i+2] = np.sqrt(comp_fit[0]**2, comp_fit[2]**2) * scale #sep
+    data[1, i+2] = np.sqrt(comp_fit[1]**2, comp_fit[3]**2) * scale #sep error
+    data[2, i+2] = comp_fit[10] #angle
+    data[3, i+2] = comp_fit[11] #angle error
     
-    print('Companion '+str(i)+' position (pix, sep/angle): ', pos_pix, pos_pol)
     
     #measure snr
     module = FalsePositiveModule(name_in='find_companion',
@@ -339,62 +326,16 @@ for i, guess in enumerate(pos_guess):
     #calculate mag
     companion_tot = sum(spectra[2:-2,i+2])
     try:
-        data[2, i+2] = -2.5*math.log10(companion_tot/star_tot)
+        data[6, i+2] = -2.5*math.log10(companion_tot/star_tot)
     except:
         print('Error with companion or star flux measurements')
-        
-        
-    #remove companion to fit next companion
-    # if i != len(pos_guess)-1:
-    #     module = CropImagesModule(name_in='crop', 
-    #                               image_in_tag='science_coadd', 
-    #                               image_out_tag='planet_crop', 
-    #                               size=radius*3., 
-    #                               center=(int(pos_pix[0]), int(pos_pix[1])))
-    #     pipeline.add_module(module)
-    #     pipeline.run_module('crop')
-        
-    #     pic = pipeline.get_data('planet_crop')
-    #     lines = (290 - pic.shape[-1]) / 2
-    #     if lines % 1 != 0:
-    #         linesa = int(lines)
-    #         linesb = int(lines) + 1
-    #     else:
-    #         linesa = lines
-    #         linesb = lines
-            
-    #     module = AddLinesModule(name_in='pad', 
-    #                             image_in_tag='planet_crop', 
-    #                             image_out_tag='planet', 
-    #                             lines=(linesa, linesb, linesa, linesb))
-    #     pipeline.add_module(module)
-    #     pipeline.run_module('pad')
-        
-    #     module = FakePlanetModule(name_in='fake',
-    #                               image_in_tag=science_image, 
-    #                               psf_in_tag='planet', 
-    #                               image_out_tag=image_out, 
-    #                               position=tuple(pos_pol), 
-    #                               magnitude=0.,
-    #                               psf_scaling=-1.)
-    #     pipeline.add_module(module)
-    #     pipeline.run_module('fake')
-        
-    #     science_image = image_out
-    #     image_out = str(int(image_out)+1)
-        
-    #     module = FitsWritingModule(name_in='write_removed', 
-    #                                data_tag=science_image, 
-    #                                file_name=folder+obs+'_removed.fits')
-    #     pipeline.add_module(module)
-    #     pipeline.run_module('write_removed')
         
         
 
 ## Format and output data ##
 data = np.vstack((data,spectra))
 np.savetxt(folder+obs+'_companion_data.txt', data, 
-           header='# columns: wl,star,companions;\n# rows: sep,sep_err,angle,angle_err,snr,fpf,d_mag')
+           header='columns: wl,star,companions\nrows: sep,sep_err,angle,angle_err,snr,fpf,d_mag')
 
 # module = TextWritingModule(name_in='write_centering', 
 #                            data_tag='science_centering', 
