@@ -244,30 +244,30 @@ for i, guess in enumerate(pos_guess):
     science_image = 'science_coadd'
     image_out = 'removed1'
     count = 1
-    for j, guess2 in enumerate(pos_guess):
-        if j != i:
-            count += 1
-            inject_pos = cartesian_to_polar(center, guess2[1], guess2[0])
-            inject_pos = (inject_pos[0]*scale, inject_pos[1])
+    # for j, guess2 in enumerate(pos_guess):
+    #     if j != i:
+    #         count += 1
+    #         inject_pos = cartesian_to_polar(center, guess2[1], guess2[0])
+    #         inject_pos = (inject_pos[0]*scale, inject_pos[1])
 
-            module = FakePlanetModule(name_in='fake',
-                                      image_in_tag=science_image, 
-                                      psf_in_tag='planet', 
-                                      image_out_tag=image_out, 
-                                      position=inject_pos, 
-                                      magnitude=1.5,
-                                      psf_scaling=-1.)
-            pipeline.add_module(module)
-            pipeline.run_module('fake')
+    #         module = FakePlanetModule(name_in='fake',
+    #                                   image_in_tag=science_image, 
+    #                                   psf_in_tag='planet', 
+    #                                   image_out_tag=image_out, 
+    #                                   position=inject_pos, 
+    #                                   magnitude=1.5,
+    #                                   psf_scaling=-1.)
+    #         pipeline.add_module(module)
+    #         pipeline.run_module('fake')
             
-            science_image = image_out
-            image_out = image_out[:-1] + str(count)
+    #         science_image = image_out
+    #         image_out = image_out[:-1] + str(count)
             
-            module = FitsWritingModule(name_in='write_removed', 
-                                       data_tag=science_image, 
-                                       file_name=folder+obs+'_'+science_image+'.fits')
-            pipeline.add_module(module)
-            pipeline.run_module('write_removed')
+    #         module = FitsWritingModule(name_in='write_removed', 
+    #                                    data_tag=science_image, 
+    #                                    file_name=folder+obs+'_'+science_image+'.fits')
+    #         pipeline.add_module(module)
+    #         pipeline.run_module('write_removed')
             
             
     #find planet position
