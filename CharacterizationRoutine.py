@@ -205,7 +205,7 @@ module = PSFpreparationModule(name_in='maskpsf',
                               image_in_tag='psf_coadd', 
                               image_out_tag='psf_masked',
                               cent_size=None,
-                              edge_size=0.1)
+                              edge_size=0.035)
 pipeline.add_module(module)
 pipeline.run_module('maskpsf')
 
