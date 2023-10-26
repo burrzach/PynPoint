@@ -296,13 +296,12 @@ for i, guess in enumerate(pos_guess):
     err1 = np.array(cartesian_to_polar(center, pos_pix[1]-comp_fit[3], pos_pix[0]-comp_fit[1]))
     err2 = np.array(cartesian_to_polar(center, pos_pix[1]+comp_fit[3], pos_pix[0]+comp_fit[1]))
     pos_err = abs(err1 - err2)
+    pos_err[0] *= scale
     
     data[0, i+2] = pos_pol[0] #sep
     data[1, i+2] = pos_err[0] #sep error
     data[2, i+2] = pos_pol[1] #angle
     data[3, i+2] = pos_err[1] #angle error
-    
-    print(comp_fit)
     
     #measure snr
     module = FalsePositiveModule(name_in='find_companion',
