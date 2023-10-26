@@ -239,13 +239,32 @@ for i, guess in enumerate(pos_guess):
             count += 1
             inject_pos = cartesian_to_polar(center, guess2[1], guess2[0])
             inject_pos = (inject_pos[0]*scale, inject_pos[1])
-
+            
+            #measure companion to be removed
+            module = AperturePhotometryModule(name_in='measure_companion', 
+                                              image_in_tag='science3D', 
+                                              phot_out_tag='companion_phot',
+                                              radius=radius,
+                                              position=guess2)
+            pipeline.add_module(module)
+            pipeline.run_module('measure_companion')
+            
+            phot = pipeline.get_data('companion_phot')[:,0]
+            
+            #calculate mag
+            companion_tot = sum(phot[2:-2])
+            try:
+                mag = -2.5*math.log10(companion_tot/star_tot)
+            except:
+                mag = 1.
+            
+            #inject negative fake planet of same magnitude
             module = FakePlanetModule(name_in='fake',
                                       image_in_tag=science_image, 
                                       psf_in_tag='planet', 
                                       image_out_tag=image_out, 
                                       position=inject_pos, 
-                                      magnitude=3.,
+                                      magnitude=2.,
                                       psf_scaling=-1.)
             pipeline.add_module(module)
             pipeline.run_module('fake')
