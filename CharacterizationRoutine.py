@@ -11,11 +11,11 @@ import configparser
 
 
 #Settings
-obs = '2023-07-26-1'
+obs = '2023-08-07-2'
 #pos_guess = [(247., 146.), (253., 162.)] #2023-05-27
 #pos_guess = [(211.5, 176.5)] #2023-05-30-2
-pos_guess = [(109., 58.)] #2023-07-26-1
-offset = 5
+#pos_guess = [(109., 58.)] #2023-07-26-1
+pos_guess = [(213.,90.), (224.,85.)] #2023-08-07-2
 radius = 0.025
 scale = 1.73 / 290
 
@@ -279,7 +279,7 @@ for i, guess in enumerate(pos_guess):
     pic = pipeline.get_data('science_coadd')
     center = center_subpixel(pic)
 
-    comp_fit = pipeline.get_data('companion_pos')
+    comp_fit = pipeline.get_data('companion_pos')[0]
     pos_pix = (comp_fit[0]+center[0], comp_fit[2]+center[1])
     pos_pol = np.array(cartesian_to_polar(center, pos_pix[1], pos_pix[0]))
     pos_pol[0] *= scale
