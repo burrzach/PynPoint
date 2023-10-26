@@ -243,6 +243,7 @@ for i, guess in enumerate(pos_guess):
         if j != i:
             count += 1
             inject_pos = cartesian_to_polar(center, guess2[1], guess2[0])
+            inject_pos = (inject_pos[0]*scale, inject_pos[1])
 
             module = FakePlanetModule(name_in='fake',
                                       image_in_tag=science_image, 
@@ -261,7 +262,7 @@ for i, guess in enumerate(pos_guess):
     module = FitCenterModule(name_in='fit',
                              image_in_tag=science_image,
                              fit_out_tag='companion_pos',
-                             mask_radii=(None,0.85),
+                             mask_radii=(None,1.2),
                              sign='positive',
                              model='gaussian',
                              filter_size=None)
