@@ -280,6 +280,8 @@ def fake_planet(images: np.ndarray,
     """
     if images.ndim == 4:
         ifs_data = True
+    else:
+        ifs_data = False
     
     if ifs_data == True:
         if len(parang) != images.shape[1]:

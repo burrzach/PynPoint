@@ -228,6 +228,9 @@ spectra[:,1] = pipeline.get_data('star_phot')[:,0]
 star_tot = sum(spectra[2:-2,1])
 
 
+pic = pipeline.get_data('science_coadd')
+center = center_subpixel(pic)
+
 
 ## Loop for multiple companions ##
 data = np.full((6,2+len(pos_guess)), np.nan)
@@ -239,11 +242,13 @@ for i, guess in enumerate(pos_guess):
     for j, guess2 in enumerate(pos_guess):
         if j != i:
             count += 1
+            inject_pos = cartesian_to_polar(center, guess2[1], guess2[0])
+
             module = FakePlanetModule(name_in='fake',
                                       image_in_tag=science_image, 
                                       psf_in_tag='planet', 
                                       image_out_tag=image_out, 
-                                      position=guess2, 
+                                      position=inject_pos, 
                                       magnitude=0.)
             pipeline.add_module(module)
             pipeline.run_module('fake')
@@ -262,9 +267,6 @@ for i, guess in enumerate(pos_guess):
                              filter_size=None)
     pipeline.add_module(module)
     pipeline.run_module('fit')
-
-    pic = pipeline.get_data('science_coadd')
-    center = center_subpixel(pic)
 
     comp_fit = pipeline.get_data('companion_pos')[0]
     pos_pix = (comp_fit[0]+center[0], comp_fit[2]+center[1])
