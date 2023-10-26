@@ -277,7 +277,6 @@ for i, guess in enumerate(pos_guess):
             
     #find planet position
     angle = cartesian_to_polar(center, guess[1], guess[0])[1]
-    print(angle)
     module = FitCenterModule(name_in='fit',
                              image_in_tag=science_image,
                              fit_out_tag='companion_pos',
@@ -285,19 +284,23 @@ for i, guess in enumerate(pos_guess):
                              sign='positive',
                              model='gaussian',
                              filter_size=0.01,
-                             guess=(guess[0]-center[0], guess[1]-center[1], 5., 5., 5000., angle, 0.))
+                             guess=(guess[0]-center[0], guess[1]-center[1], 5., 5., 5000., 0., 0.))
     pipeline.add_module(module)
     pipeline.run_module('fit')
 
     comp_fit = pipeline.get_data('companion_pos')[0]
     pos_pix = (comp_fit[0]+center[0], comp_fit[2]+center[1])
+    pos_pol = np.array(cartesian_to_polar(center, pos_pix[1], pos_pix[0]))
+    pos_pol[0] *= scale
+
+    err1 = np.array(cartesian_to_polar(center, pos_pix[1]-comp_fit[3], pos_pix[0]-comp_fit[1]))
+    err2 = np.array(cartesian_to_polar(center, pos_pix[1]+comp_fit[3], pos_pix[0]+comp_fit[1]))
+    pos_err = abs(err1 - err2)
     
-    print(comp_fit)
-    
-    data[0, i+2] = np.sqrt(comp_fit[0]**2 + comp_fit[2]**2) * scale #sep
-    data[1, i+2] = np.sqrt(comp_fit[1]**2 + comp_fit[3]**2) * scale #sep error
-    data[2, i+2] = comp_fit[10] #angle
-    data[3, i+2] = comp_fit[11] #angle error
+    data[0, i+2] = pos_pol[0] #sep
+    data[1, i+2] = pos_err[0] #sep error
+    data[2, i+2] = pos_pol[1] #angle
+    data[3, i+2] = pos_err[1] #angle error
     
     
     #measure snr
