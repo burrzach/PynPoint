@@ -4,7 +4,7 @@ import math
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
     AddFramesModule, RemoveFramesModule, FalsePositiveModule, AperturePhotometryModule, \
     DerotateAndStackModule, FitCenterModule, FakePlanetModule, PSFpreparationModule, \
-    AddLinesModule, FitsWritingModule
+    AddLinesModule, FitsWritingModule, CropImagesModule
 from pynpoint.core.processing import ProcessingModule
 from pynpoint.util.image import cartesian_to_polar, center_subpixel
 import configparser
@@ -229,54 +229,56 @@ center = center_subpixel(pic)
 
 ## Loop for multiple companions ##
 data = np.full((6,2+len(pos_guess)), np.nan)
+science_image = 'science_coadd'
+image_out = '0'
 for i, guess in enumerate(pos_guess):
     #remove all other planets
-    science_image = 'science_coadd'
-    image_out = 'removed1'
-    count = 1
-    for j, guess2 in enumerate(pos_guess):
-        if j != i:
-            count += 1
-            inject_pos = cartesian_to_polar(center, guess2[1], guess2[0])
-            inject_pos = (inject_pos[0]*scale, inject_pos[1])
+    # science_image = 'science_coadd'
+    # image_out = 'removed1'
+    # count = 1
+    # for j, guess2 in enumerate(pos_guess):
+    #     if j != i:
+    #         count += 1
+    #         inject_pos = cartesian_to_polar(center, guess2[1], guess2[0])
+    #         inject_pos = (inject_pos[0]*scale, inject_pos[1])
             
-            #measure companion to be removed
-            module = AperturePhotometryModule(name_in='measure_companion', 
-                                              image_in_tag='science3D', 
-                                              phot_out_tag='companion_phot',
-                                              radius=radius,
-                                              position=guess2)
-            pipeline.add_module(module)
-            pipeline.run_module('measure_companion')
+    #         #measure companion to be removed
+    #         module = AperturePhotometryModule(name_in='measure_companion', 
+    #                                           image_in_tag='science3D', 
+    #                                           phot_out_tag='companion_phot',
+    #                                           radius=radius,
+    #                                           position=guess2)
+    #         pipeline.add_module(module)
+    #         pipeline.run_module('measure_companion')
             
-            phot = pipeline.get_data('companion_phot')[:,0]
+    #         phot = pipeline.get_data('companion_phot')[:,0]
             
-            #calculate mag
-            companion_tot = sum(phot[2:-2])
-            try:
-                mag = -2.5*math.log10(companion_tot/star_tot)
-            except:
-                mag = 1.
+    #         #calculate mag
+    #         companion_tot = sum(phot[2:-2])
+    #         try:
+    #             mag = -2.5*math.log10(companion_tot/star_tot)
+    #         except:
+    #             mag = 1.
             
-            #inject negative fake planet of same magnitude
-            module = FakePlanetModule(name_in='fake',
-                                      image_in_tag=science_image, 
-                                      psf_in_tag='planet', 
-                                      image_out_tag=image_out, 
-                                      position=inject_pos, 
-                                      magnitude=mag,
-                                      psf_scaling=-1.)
-            pipeline.add_module(module)
-            pipeline.run_module('fake')
+    #         #inject negative fake planet of same magnitude
+    #         module = FakePlanetModule(name_in='fake',
+    #                                   image_in_tag=science_image, 
+    #                                   psf_in_tag='planet', 
+    #                                   image_out_tag=image_out, 
+    #                                   position=inject_pos, 
+    #                                   magnitude=mag,
+    #                                   psf_scaling=-1.)
+    #         pipeline.add_module(module)
+    #         pipeline.run_module('fake')
             
-            science_image = image_out
-            image_out = image_out[:-1] + str(count)
+    #         science_image = image_out
+    #         image_out = image_out[:-1] + str(count)
             
-            module = FitsWritingModule(name_in='write_removed', 
-                                        data_tag=science_image, 
-                                        file_name=folder+obs+'_'+science_image+'.fits')
-            pipeline.add_module(module)
-            pipeline.run_module('write_removed')
+    #         module = FitsWritingModule(name_in='write_removed', 
+    #                                     data_tag=science_image, 
+    #                                     file_name=folder+obs+'_'+science_image+'.fits')
+    #         pipeline.add_module(module)
+    #         pipeline.run_module('write_removed')
             
             
     #find planet position
@@ -338,7 +340,60 @@ for i, guess in enumerate(pos_guess):
         data[2, i+2] = -2.5*math.log10(companion_tot/star_tot)
     except:
         print('Error with companion or star flux measurements')
-
+        
+        
+    #remove companion to fit next companion
+    if i != len(pos_guess)-1:
+        module = CropImagesModule(name_in='crop', 
+                                  image_in_tag=science_image, 
+                                  image_out_tag=image_out, 
+                                  size=radius*2.5, 
+                                  center=(int(pos_pix[0]), int(pos_pix[1])))
+        pipeline.add_module(module)
+        pipeline.run_moudle('crop')
+        
+        pic = pipeline.get_data(image_out)
+        lines = (290 - pic.shape[0]) % 2
+        if lines % 1 != 0:
+            linesa = int(lines)
+            linesb = int(lines) + 1
+        else:
+            linesa = lines
+            linesb = lines
+            
+        science_image = image_out
+        image_out = str(int(image_out)+1)
+            
+        module = AddLinesModule(name_in='pad', 
+                                image_in_tag=science_image, 
+                                image_out_tag=image_out, 
+                                lines=(linesa, linesb, linesa, linesb))
+        pipeline.add_module(module)
+        pipeline.run_module('pad')
+        
+        science_image = image_out
+        image_out = str(int(image_out)+1)
+        
+        module = FakePlanetModule(name_in='fake',
+                                  image_in_tag=science_image, 
+                                  psf_in_tag='planet', 
+                                  image_out_tag=image_out, 
+                                  position=pos_pix, 
+                                  magnitude=0.,
+                                  psf_scaling=-1.)
+        pipeline.add_module(module)
+        pipeline.run_module('fake')
+        
+        science_image = image_out
+        image_out = str(int(image_out)+1)
+        
+        module = FitsWritingModule(name_in='write_removed', 
+                                   data_tag=science_image, 
+                                   file_name=folder+obs+'_removed.fits')
+        pipeline.add_module(module)
+        pipeline.run_module('write_removed')
+        
+        
 
 ## Format and output data ##
 data = np.vstack((data,spectra))
