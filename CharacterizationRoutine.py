@@ -154,6 +154,11 @@ module = AddFramesModule(name_in='coadd_science',
 pipeline.add_module(module)
 pipeline.run_module('coadd_science')
 
+pipeline.set_attribute(data_tag='science_coadd', 
+                       attr_name='PARANG', 
+                       attr_value=np.array([0.]),
+                       static=False)
+
 #coadd psf
 '''
 module = DerotateAndStackModule(name_in='derotate_psf',
@@ -250,7 +255,8 @@ for i, guess in enumerate(pos_guess):
                                       psf_in_tag='planet', 
                                       image_out_tag=image_out, 
                                       position=inject_pos, 
-                                      magnitude=0.)
+                                      magnitude=0.,
+                                      psf_scaling=-1.)
             pipeline.add_module(module)
             pipeline.run_module('fake')
             
