@@ -345,7 +345,7 @@ for i, guess in enumerate(pos_guess):
     #remove companion to fit next companion
     if i != len(pos_guess)-1:
         module = CropImagesModule(name_in='crop', 
-                                  image_in_tag=science_image, 
+                                  image_in_tag='science_coadd', 
                                   image_out_tag='planet_crop', 
                                   size=radius*2.5, 
                                   center=(int(pos_pix[0]), int(pos_pix[1])))
