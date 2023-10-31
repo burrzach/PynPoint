@@ -75,33 +75,50 @@ for n in range(len(image_indices)):
 
 
 #%%
-obs = "2023-07-26-1"
-file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"+obs+"_companion_data.txt"
-data = np.genfromtxt(file)
+relative = False
 
-print(obs)
-head = data[:5]
-print('sep, angle, mag, snr, fpf')
-if len(data[0]) > 3:
-    for i in range(len(data[0])-2):
-        print('companion '+str(i+1)+':\n', head[:,i+2])
-else:
-    print(head[:,2])
+#obs = "2023-05-27"
+#obs = "2023-05-30-2"
+#obs = "2023-06-15-1" #binary
+#obs = "2023-07-26-1"
+#obs = "2023-08-07-2"
+obs_list = ["2023-05-27", "2023-05-30-2", "2023-07-26-1", "2023-08-07-2"]
+for obs in obs_list:
+    file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"+obs+"_companion_data.txt"
+    data = np.genfromtxt(file)
+    head = data[:7]
     
-spectra = data[5:]
-#spectra = spectra[spectra[:,0].argsort()]
-wl = spectra[:,0] / 1e3
-
-plt.figure()
-plt.plot(wl, spectra[:,1], marker='o', label='host star')
-if len(data[0]) > 3:
+    print(obs)
+    print('sep, sep_err, angle, angle_err, snr, fpf, mag')
+    if len(data[0]) > 3:
+        for i in range(len(data[0])-2):
+            print('companion '+str(i+1)+':\n', head[:,i+2])
+    else:
+        print(head[:,2])
+        
+    spectra = data[7:]
+    #spectra = spectra[spectra[:,0].argsort()]
+    wl = spectra[:,0] / 1e3
+    wl.sort()
+    
+    plt.figure()
+    if relative == False:
+        plt.plot(wl, spectra[:,1], marker='o', label='host star')
+        plt.yscale('log')
+    else:
+        plt.ylabel('Fc/Fs')
+        
     for i in range(len(data[0])-2):
-        plt.plot(wl, spectra[:,i+2], marker='o', label='companion '+str(i+1))
-else:
-    plt.plot(wl, spectra[:,2], marker='o', label='companion')
-
-plt.legend()
-plt.yscale('log')
-plt.xlabel('$\lambda$ $[\mu m]$')
-plt.title(obs)
-plt.show()
+        if relative == True:
+            comp = spectra[:,i+2] / spectra[:,1]
+        else:
+            comp = spectra[:,i+2]
+        if len(data[0]) > 3:
+                plt.plot(wl, comp, marker='o', label='companion '+str(i+1))
+        else:
+            plt.plot(wl, comp, marker='o', label='companion')
+    
+    plt.legend()
+    plt.xlabel('$\lambda$ $[\mu m]$')
+    plt.title(obs)
+    plt.show()
