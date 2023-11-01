@@ -313,7 +313,8 @@ for i, guess in enumerate(pos_guess):
                                  image_in_tag='science_coadd',
                                  snr_out_tag='companion_coadd_snr', 
                                  position=pos_pix,
-                                 aperture=radius)
+                                 aperture=radius,
+                                 output_noise=True)
     pipeline.add_module(module)
     pipeline.run_module('snr_coadd')
     
@@ -330,7 +331,8 @@ for i, guess in enumerate(pos_guess):
                                  image_in_tag='science_coadd',
                                  snr_out_tag='companion_snr', 
                                  position=pos_pix,
-                                 aperture=radius)
+                                 aperture=radius,
+                                 output_noise=True)
     pipeline.add_module(module)
     pipeline.run_module('snr')
     
