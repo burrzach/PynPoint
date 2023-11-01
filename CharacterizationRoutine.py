@@ -328,7 +328,7 @@ for i, guess in enumerate(pos_guess):
     
     #measure companion stats for each slice
     module = FalsePositiveModule(name_in='snr',
-                                 image_in_tag='science_coadd',
+                                 image_in_tag='science3D',
                                  snr_out_tag='companion_snr', 
                                  position=pos_pix,
                                  aperture=radius,
