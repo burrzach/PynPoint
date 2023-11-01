@@ -209,8 +209,7 @@ pipeline.run_module('pad')
 
 
 ## Measure star spectrum ##
-spectra = np.zeros((39, 2+len(pos_guess)))
-spectra[:,0] = pipeline.get_attribute('psf', 'WAVELENGTH', static=False)
+wl = pipeline.get_attribute('psf', 'WAVELENGTH', static=False)
 
 module = AperturePhotometryModule(name_in='measure_star', 
                                   image_in_tag='psf3D', 
@@ -220,8 +219,8 @@ module = AperturePhotometryModule(name_in='measure_star',
 pipeline.add_module(module)
 pipeline.run_module('measure_star')
 
-spectra[:,1] = pipeline.get_data('star_phot')[:,0]
-star_tot = sum(spectra[2:-2,1])
+star_spectrum = pipeline.get_data('star_phot')[:,0]
+star_tot = sum(star_spectrum[2:-2])
 
 
 pic = pipeline.get_data('science_coadd')
@@ -229,10 +228,13 @@ center = center_subpixel(pic)
 
 
 ## Loop for multiple companions ##
-data = np.full((7,2+len(pos_guess)), np.nan)
-science_image = 'science_coadd'
-image_out = '0'
 for i, guess in enumerate(pos_guess):
+    #initialize array
+    data = np.full((40,14), np.nan)
+    data[0,1] = star_tot
+    data[1:,0] = wl
+    data[1:,1] = star_spectrum
+    
     #remove all other planets
     science_image = 'science_coadd'
     image_out = 'removed1'
@@ -299,59 +301,60 @@ for i, guess in enumerate(pos_guess):
     pos_err = abs(err1 - err2)
     pos_err[0] *= scale
     
-    data[0, i+2] = pos_pol[0] #sep
-    data[1, i+2] = pos_err[0] #sep error
-    data[2, i+2] = pos_pol[1] #angle
-    data[3, i+2] = pos_err[1] #angle error
+    data[0,  7] = pos_pol[0] #sep
+    data[0,  8] = pos_err[0] #sep error
+    data[0,  9] = pos_pol[1] #angle
+    data[0, 10] = pos_err[1] #angle error
     
-    #measure snr
-    module = FalsePositiveModule(name_in='find_companion',
+    
+    #measure companion stats in coadd
+    module = FalsePositiveModule(name_in='snr_coadd',
+                                 image_in_tag='science_coadd',
+                                 snr_out_tag='companion_coadd_snr', 
+                                 position=pos_pix,
+                                 aperture=radius)
+    pipeline.add_module(module)
+    pipeline.run_module('snr_coadd')
+    
+    snr = pipeline.get_data('companion_coadd_snr')[0]
+    data[0, 11] = snr[4] #snr
+    data[0, 12] = snr[5] #fpf
+    data[0,  4] = snr[6] #companion signal
+    data[0,  5] = snr[7] #mean noise
+    data[0,  6] = snr[8] #std noise
+    
+    
+    #measure companion stats for each slice
+    module = FalsePositiveModule(name_in='snr',
                                  image_in_tag='science_coadd',
                                  snr_out_tag='companion_snr', 
                                  position=pos_pix,
                                  aperture=radius)
     pipeline.add_module(module)
-    pipeline.run_module('find_companion')
+    pipeline.run_module('snr')
     
-    snr = pipeline.get_data('companion_snr')[0]
-    data[4, i+2] = snr[4] #snr
-    data[5, i+2] = snr[5] #fpf
-    
-    
-    #measure companion spectrum
-    module = AperturePhotometryModule(name_in='measure_companion', 
-                                      image_in_tag='science3D', 
-                                      phot_out_tag='companion_phot',
-                                      radius=radius,
-                                      position=pos_pix)
-    pipeline.add_module(module)
-    pipeline.run_module('measure_companion')
-    
-    spectra[:,i+2] = pipeline.get_data('companion_phot')[:,0]
+    snr = pipeline.get_data('companion_snr')
+    data[1:, 11] = snr[:,4] #snr
+    data[1:, 12] = snr[:,5] #fpf
+    data[1:,  4] = snr[:,6] #companion signal
+    data[1:,  5] = snr[:,7] #mean noise
+    data[1:,  6] = snr[:,8] #std noise
     
     
     #calculate mag
-    companion_tot = sum(spectra[2:-2,i+2])
+    companion_tot = sum(data[3:-2,4])
     try:
-        data[6, i+2] = -2.5*math.log10(companion_tot/star_tot)
+        data[0, 13] = -2.5*math.log10(companion_tot/star_tot)
     except:
         print('Error with companion or star flux measurements')
-        
-        
-
-## Format and output data ##
-data = np.vstack((data,spectra))
-np.savetxt(folder+obs+'_companion_data.txt', data, 
-           header='columns: wl,star,companions\nrows: sep,sep_err,angle,angle_err,snr,fpf,d_mag')
-
-# module = TextWritingModule(name_in='write_centering', 
-#                            data_tag='science_centering', 
-#                            file_name=folder+obs+'_centering_data.txt',
-#                            header='#x offset (pix), x offset err (pix),'+\
-#                                   ' y offset (pix), y offset err (pix),'+\
-#                                   ' FWHM major axis (arcsec), FWHM major axis err (arcsec),'+\
-#                                   ' FWHM minor axis (arcsec), FWHM minor axis err (arcsec),'+\
-#                                   ' amp (ADU), amp err (ADU), angle (deg), angle err (deg),'+\
-#                                   ' offset (ADU), offset err (ADU)')
-# pipeline.add_module(module)
-# pipeline.run_module('write_centering')
+    for i in range(1,len(data)):
+        try:
+            data[i,13] = -2.5*math.log10(data[i,4]/data[i,1])
+        except:
+            ...
+    
+    #save data
+    np.savetxt(folder+obs+'_companion'+str(i+1)+'_data.txt', data,
+               header='wl, star, avg_noise_star, std_noise_star, comp, '+\
+                      'avg_noise_comp, std_noise_comp, sep, sep_err, angle, '+\
+                      'angle_err, snr, fpf, d_mag')

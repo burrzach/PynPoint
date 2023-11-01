@@ -779,7 +779,7 @@ class FalsePositiveModule(ProcessingModule):
             else:
                 noise_mean = signal - snr * noise
                 result = np.column_stack((x_pos, y_pos, sep_ang[0]*pixscale, sep_ang[1], snr, fpf, 
-                                          noise_mean, noise))
+                                          signal, noise_mean, noise))
                 
             self.m_snr_out_port.append(result, data_dim=2)
 
