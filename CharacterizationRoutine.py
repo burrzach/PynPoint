@@ -350,9 +350,9 @@ for i, guess in enumerate(pos_guess):
         data[0, 13] = -2.5*math.log10(companion_tot/star_tot)
     except:
         print('Error with companion or star flux measurements')
-    for i in range(1,len(data)):
+    for l in range(1,len(data)):
         try:
-            data[i,13] = -2.5*math.log10(data[i,4]/data[i,1])
+            data[l,13] = -2.5*math.log10(data[l,4]/data[l,1])
         except:
             ...
     
