@@ -622,6 +622,7 @@ class FalsePositiveModule(ProcessingModule):
                  aperture: float = 0.1,
                  ignore: bool = False,
                  optimize: bool = False,
+                 output_noise: bool = False,
                  **kwargs: Any) -> None:
         """
         Parameters
@@ -648,6 +649,8 @@ class FalsePositiveModule(ProcessingModule):
         optimize : bool
             Optimize the SNR. The aperture position is stored in the `snr_out_tag`. The size of the
             aperture is kept fixed.
+        output_noise: bool
+            Output noise mean and std to snr_out_tag also.
 
         Keyword arguments
         -----------------
@@ -687,6 +690,7 @@ class FalsePositiveModule(ProcessingModule):
         self.m_aperture = aperture
         self.m_ignore = ignore
         self.m_optimize = optimize
+        self.m_output_noise = output_noise
 
     @typechecked
     def run(self) -> None:
@@ -749,7 +753,7 @@ class FalsePositiveModule(ProcessingModule):
                                   tol=None,
                                   options={'xatol': self.m_tolerance, 'fatol': float('inf')})
 
-                _, _, snr, fpf = false_alarm(image=image,
+                signal, noise, snr, fpf = false_alarm(image=image,
                                              x_pos=result.x[0],
                                              y_pos=result.x[1],
                                              size=self.m_aperture,
@@ -758,7 +762,7 @@ class FalsePositiveModule(ProcessingModule):
                 x_pos, y_pos = result.x[0], result.x[1]
 
             else:
-                _, _, snr, fpf = false_alarm(image=image,
+                signal, noise, snr, fpf = false_alarm(image=image,
                                              x_pos=self.m_position[0],
                                              y_pos=self.m_position[1],
                                              size=self.m_aperture,
@@ -770,8 +774,13 @@ class FalsePositiveModule(ProcessingModule):
                   f'S/N = {snr:.2f}, FPF = {fpf:.2e}')
 
             sep_ang = cartesian_to_polar(center, y_pos, x_pos)
-            result = np.column_stack((x_pos, y_pos, sep_ang[0]*pixscale, sep_ang[1], snr, fpf))
-
+            if self.m_output_noise == False:
+                result = np.column_stack((x_pos, y_pos, sep_ang[0]*pixscale, sep_ang[1], snr, fpf))
+            else:
+                noise_mean = signal - snr * noise
+                result = np.column_stack((x_pos, y_pos, sep_ang[0]*pixscale, sep_ang[1], snr, fpf, 
+                                          noise_mean, noise))
+                
             self.m_snr_out_port.append(result, data_dim=2)
 
         history = f'aperture (arcsec) = {self.m_aperture*pixscale:.2f}'
