@@ -4,20 +4,21 @@ import math
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
     AddFramesModule, RemoveFramesModule, FalsePositiveModule, AperturePhotometryModule, \
     DerotateAndStackModule, FitCenterModule, FakePlanetModule, PSFpreparationModule, \
-    AddLinesModule, FitsWritingModule, CropImagesModule
+    AddLinesModule
 from pynpoint.core.processing import ProcessingModule
 from pynpoint.util.image import cartesian_to_polar, center_subpixel
 import configparser
 
 
 #Settings
-obs = '2023-06-15-1'
-#pos_guess = [(247., 146.), (253., 162.)] #2023-05-27
+obs = '2023-05-27'
+pos_guess = [(247., 146.), (253., 162.)] #2023-05-27
 #pos_guess = [(211.5, 176.5)] #2023-05-30-2
-pos_guess = [(125., 170.)] #2023-06-15-1 #binary companion
+#pos_guess = [(125., 170.)] #2023-06-15-1 #binary companion
 #pos_guess = [(109., 58.)] #2023-07-26-1
 #pos_guess = [(213.,90.), (224.,85.)] #2023-08-07-2
-radius = 0.05
+radius = 0.035
+#radius = 0.05 #larger radius for binary companion
 scale = 1.73 / 290
 
 folder = "/data/zburr/yses_ifu/2nd_epoch/processed/"+obs+"/products/"
