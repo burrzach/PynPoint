@@ -265,7 +265,8 @@ for i, sep in enumerate(sep_space):
         #convert separation and angle to pixel position
         pic = pipeline.get_data('science_derot')
         sep_pix = sep / scale
-        pos_pix = polar_to_cartesian(pic, sep_pix, angle)
+        y,x = polar_to_cartesian(pic, sep_pix, angle)
+        pos_pix = (x,y)
         
         #optimize to find brightness at threshold
         res = root_scalar(PlanetInjection, 
