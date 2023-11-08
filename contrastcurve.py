@@ -242,7 +242,7 @@ for i, sep in enumerate(sep_space):
                        x0=4., 
                        args=(pipeline, pos_pix, threshold, False),
                        method='SLSQP',
-                       bounds=(0.,15),
+                       bounds=[(0.,15)],
                        tol=tolerance,
                        options={'maxiter':iterations, 'disp':True})
         
