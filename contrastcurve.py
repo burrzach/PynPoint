@@ -33,16 +33,16 @@ from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, Wavelengt
 from pynpoint.util.image import polar_to_cartesian
 from pynpoint.core.processing import ProcessingModule
 import configparser
-from scipy.optimize import minimize
+from scipy.optimize import minimize_scalar
 
 
 #settings
 scale = 1.73 / 290  #arcsec/pixel
 radius = 0.035      #arcsec
-angle_step = 60     #deg
-sep_step = 0.01     #arcsec
-inner_radius = 0.05 #arcsec
-outer_radius = 0.85 #arcsec
+angle_step = 360     #deg
+sep_step = 0.1     #arcsec
+inner_radius = 0.1 #arcsec
+outer_radius = 0.2 #arcsec
 threshold = 3e-7    #-
 tolerance = 1e-13   #-
 iterations = 1000   #-
@@ -240,13 +240,11 @@ for i, sep in enumerate(sep_space):
         pos_pix = polar_to_cartesian(pic, sep_pix, angle)
         
         #optimize to find brightness at threshold
-        res = minimize(PlanetInjection, 
-                       x0=4., 
-                       args=(pipeline, pos_pix, threshold, False),
-                       method='SLSQP',
-                       bounds=[(0.,15)],
-                       tol=tolerance,
-                       options={'maxiter':iterations, 'disp':True})
+        res = minimize_scalar(PlanetInjection, 
+                              args=(pipeline, pos_pix, threshold, False),
+                              bounds=(0.,15),
+                              tol=tolerance,
+                              options={'maxiter':iterations, 'disp':3})
         
         #grab results
         iterations = res.nit
