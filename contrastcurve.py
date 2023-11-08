@@ -92,7 +92,7 @@ class ReshapeModule(ProcessingModule):
         
 
 #Function to inject planet of given brightness and find fpf
-def PlanetInjection(mag, pipeline, pos_pix, threshold, subtract=False):
+def PlanetInjection(mag, pipeline, sep, angle, pos_pix, threshold, subtract=False):
     #inject fake planet
     module = FakePlanetModule(name_in='fake',
                               image_in_tag='science_derot', 
@@ -255,14 +255,14 @@ for i, sep in enumerate(sep_space):
         print('Beginning iterations for:', (sep, angle))
         print('-------------------------------------')
         
-        #convert polar position into pixels
+        #convert separation and angle to pixel position
         pic = pipeline.get_data('science_derot')
         sep_pix = sep / scale
         pos_pix = polar_to_cartesian(pic, sep_pix, angle)
         
         #optimize to find brightness at threshold
         res = root_scalar(PlanetInjection, 
-                          args=(pipeline, pos_pix, threshold, False),
+                          args=(pipeline, sep, angle, pos_pix, threshold, False),
                           bracket=(0.,10.),
                           x0=5.,
                           rtol=tolerance,
