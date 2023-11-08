@@ -29,7 +29,7 @@ else:
 import numpy as np
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule, \
     PSFpreparationModule, AddLinesModule, RemoveFramesModule, AddFramesModule, \
-    FakePlanetModule, FalsePositiveModule, PcaPsfSubtractionModule
+    FakePlanetModule, FalsePositiveModule, PcaPsfSubtractionModule, DerotateAndStackModule
 from pynpoint.util.image import polar_to_cartesian
 from pynpoint.core.processing import ProcessingModule
 import configparser
@@ -95,7 +95,7 @@ class ReshapeModule(ProcessingModule):
 def PlanetInjection(mag, pipeline, pos_pix, threshold, subtract=False):
     #inject fake planet
     module = FakePlanetModule(name_in='fake',
-                              image_in_tag='science', 
+                              image_in_tag='science_derot', 
                               psf_in_tag='planet', 
                               image_out_tag='injected', 
                               position=(sep,angle), 
@@ -155,8 +155,7 @@ pipeline = Pypeline(working_place_in=folder,
                     output_place_in =folder)
 
 
-## Load in images ##
-#read in science data
+## Load in science image ##
 module = FitsReadingModule(name_in='read',
                            image_tag='science',
                            filenames=[folder+'science_cube.fits'],
@@ -177,7 +176,23 @@ module = WavelengthReadingModule(name_in='wavelength',
 pipeline.add_module(module)
 pipeline.run_module('wavelength')
 
-#read in psf
+
+## Prepare science image ##
+module = DerotateAndStackModule(name_in='derotate_science',
+                                image_in_tag='science_reshape',
+                                image_out_tag='science_derot',
+                                derotate=True,
+                                stack=None)
+pipeline.add_module(module)
+pipeline.run_module('derotate_science')
+
+pipeline.set_attribute(data_tag='science_derot', 
+                       attr_name='PARANG', 
+                       attr_value=np.array([0.]),
+                       static=False)
+
+
+## Load PSF ##
 module = FitsReadingModule(name_in='readpsf',
                             image_tag='psf',
                             filenames=[folder+'psf_cube.fits'],
@@ -197,7 +212,6 @@ module = WavelengthReadingModule(name_in='wavelengthpsf',
                                   file_name=folder+'wavelength.fits')
 pipeline.add_module(module)
 pipeline.run_module('wavelengthpsf')
-
 
 ## Prepare PSF for injection ##
 module = RemoveFramesModule(name_in='slice_psf', 
@@ -242,7 +256,7 @@ for i, sep in enumerate(sep_space):
         print('-------------------------------------')
         
         #convert polar position into pixels
-        pic = pipeline.get_data('science')
+        pic = pipeline.get_data('science_derot')
         sep_pix = sep / scale
         pos_pix = polar_to_cartesian(pic, sep_pix, angle)
         
