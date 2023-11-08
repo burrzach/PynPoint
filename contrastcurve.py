@@ -179,7 +179,7 @@ pipeline.run_module('wavelength')
 
 ## Prepare science image ##
 module = DerotateAndStackModule(name_in='derotate_science',
-                                image_in_tag='science_reshape',
+                                image_in_tag='science',
                                 image_out_tag='science_derot',
                                 derotate=True,
                                 stack=None)
