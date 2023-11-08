@@ -18,6 +18,49 @@ companion_list = {"2023-05-27":  2,
                   "2023-08-07-2":2}
 model = "T4500_g45"
 
+
+## Define Functions ##
+def bin_spectra(model_wl, model_values, central_wl):
+    '''
+    Bins model spectra to match data.
+
+    Parameters
+    ----------
+    model_wl : numpy.ndarray
+        Wavelengths for the model spectrum that needs to be binned.
+    model_values : numpy.ndarray
+        Values of the model corresponding to the model_wl.
+    central_wl : numpy.ndarray
+        1D array of central wavelength values for the bins
+
+    Returns
+    -------
+    binned_model : numpy.ndarray
+        Model spectra binned to match the central_wl.
+
+    '''
+    
+    #calculate bins centered around central_wl
+    bins = np.zeros((len(central_wl)+1))
+    bins[1:-1] = (central_wl[1:] + central_wl[:-1]) / 2
+    bin_width = np.mean(np.diff(bins[1:-1]))
+    bins[0] = bins[1] - bin_width
+    bins[-1] = bins[-2] + bin_width
+    
+    #find which bin each element is in
+    lower_bound = model_wl >= bins[0]
+    upper_bound = model_wl < bins[-1]
+    bounded_wl = model_wl[lower_bound * upper_bound]
+    bin_indices = np.digitize(bounded_wl, bins)
+    
+    #calculate bin average
+    bounded_model = model_values[lower_bound * upper_bound]
+    binned_model = [bounded_model[bin_indices == i].mean() \
+                    for i in range(1, len(bins))]
+    
+    return np.array(binned_model)
+
+
 for obs in obs_list:
     n_companions = companion_list[obs]
     
@@ -43,12 +86,13 @@ for obs in obs_list:
     #format spectra
     wl = data[1:,0] / 1e3 #convert nm -> micron
     wl.sort()
-    star_spectra = data[1:,1]
+    star_spectra = data[1:,1] - data[1:,2]
+    star_error = data[1:,3]
     
     
-    #interpolate stellar model
+    #bin stellar model
     star_wl = star_model[:,0] / 1e4 #convert angstrom -> micron
-    model_spectra = np.interp(wl, star_wl, star_model[:,1])
+    model_spectra = bin_spectra(star_wl, star_model[:,1], wl)
     ratio = np.mean(star_spectra) / np.mean(model_spectra)
     model_spectra *= ratio
     if fit_model == False:
@@ -57,11 +101,12 @@ for obs in obs_list:
         #fit star spectrum to model, then use to correct companion spectrum
         fitting = model_spectra / star_spectra
         star_spectra *= fitting
+        star_error *= fitting
     
     
     #make figure and plot star
     plt.figure('spectra'+obs)
-    plt.plot(wl, star_spectra, marker='*', label=obs)
+    plt.errorbar(wl, star_spectra, yerr=star_error, marker='*', label='host star')
     plt.yscale('log')
     
     #plot first companion

@@ -1,3 +1,17 @@
+#get arguments
+import os
+import sys
+
+if len(sys.argv) > 1:
+    obs = sys.argv[1]
+    
+    folder = "/data/zburr/yses_ifu/2nd_epoch/processed/"+obs+"/products/"
+    
+    if not os.path.exists(folder):
+        raise OSError(folder + " does not exist.")
+else:
+    raise ValueError("No dir given.")
+
 #imports
 import numpy as np
 import math
@@ -11,17 +25,16 @@ import configparser
 
 
 #Settings
-obs = '2023-05-27'
-pos_guess = [(247., 146.), (253., 162.)] #2023-05-27
-#pos_guess = [(211.5, 176.5)] #2023-05-30-2
-#pos_guess = [(125., 170.)] #2023-06-15-1 #binary companion
-#pos_guess = [(109., 58.)] #2023-07-26-1
-#pos_guess = [(213.,90.), (224.,85.)] #2023-08-07-2
+#obs = '2023-05-27'
+guess_dict = {'2023-05-27':   [(247., 146.), (253., 162.)],
+              '2023-05-30-2': [(211.5, 176.5)],
+              '2023-06-15-1': [(125., 170.)], #binary companion
+              '2023-07-26-1': [(109., 58.)],
+              '2023-08-07-2': [(213.,90.), (224.,85.)]}
 radius = 0.035
-#radius = 0.05 #larger radius for binary companion
+star_radius = 0.035
+bi_radius = 0.05 #larger radius for binary companion
 scale = 1.73 / 290
-
-folder = "/data/zburr/yses_ifu/2nd_epoch/processed/"+obs+"/products/"
 
 
 #Set configuration file
@@ -66,6 +79,14 @@ class ReshapeModule(ProcessingModule):
 
         self.m_out_port.close_port()
 
+
+#Set settings for this obs
+try:
+    pos_guess = guess_dict[obs]
+except:
+    raise ValueError("Observation not in list of those with companions.")
+if obs == '2023-06-15-1':
+    radius = bi_radius
 
 #Initialize pipeline
 pipeline = Pypeline(working_place_in=folder,
@@ -197,7 +218,7 @@ module = PSFpreparationModule(name_in='maskpsf',
                               image_in_tag='psf_coadd', 
                               image_out_tag='psf_masked',
                               cent_size=None,
-                              edge_size=0.045)
+                              edge_size=star_radius)
 pipeline.add_module(module)
 pipeline.run_module('maskpsf')
 
@@ -209,13 +230,13 @@ pipeline.add_module(module)
 pipeline.run_module('pad')
 
 
-## Measure star spectrum ##
+## Measure star ##
 wl = pipeline.get_attribute('psf', 'WAVELENGTH', static=False)
 
 module = AperturePhotometryModule(name_in='measure_star', 
                                   image_in_tag='psf3D', 
                                   phot_out_tag='star_phot',
-                                  radius=0.035,
+                                  radius=star_radius,
                                   position=None)
 pipeline.add_module(module)
 pipeline.run_module('measure_star')
@@ -223,18 +244,33 @@ pipeline.run_module('measure_star')
 star_spectrum = pipeline.get_data('star_phot')[:,0]
 star_tot = sum(star_spectrum[2:-2])
 
+pic = pipeline.get_data('psf3D')
+center = center_subpixel(pic)
+pos = (center[0], (2 * star_radius / scale) + center[1] )
+module = FalsePositiveModule(name_in='star_noise', 
+                             image_in_tag='psf_derot', 
+                             snr_out_tag='psf_noise', 
+                             position=pos, 
+                             aperture=star_radius,
+                             output_noise=True)
+pipeline.add_module(module)
+pipeline.run_module('star_noise')
+
+star_noise = pipeline.get_data('psf_noise')
+
 
 pic = pipeline.get_data('science_coadd')
 center = center_subpixel(pic)
-
 
 ## Loop for multiple companions ##
 for i, guess in enumerate(pos_guess):
     #initialize array
     data = np.full((40,14), np.nan)
-    data[0,1] = star_tot
+    data[0, 1] = star_tot
     data[1:,0] = wl
     data[1:,1] = star_spectrum
+    data[1:,2] = star_noise[:,7]
+    data[1:,3] = star_noise[:,8]
     
     #remove all other planets
     science_image = 'science_coadd'
