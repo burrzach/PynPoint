@@ -218,10 +218,17 @@ pipeline.run_module('maskpsf')
 
 module = AddLinesModule(name_in='pad', 
                         image_in_tag='psf_masked', 
-                        image_out_tag='planet', 
+                        image_out_tag='psf_pad', 
                         lines=(105,105,105,105))
 pipeline.add_module(module)
 pipeline.run_module('pad')
+
+module = ReshapeModule(name_in='reshape_psf', 
+                       image_in_tag='psf_pad', 
+                       image_out_tag='planet', 
+                       shape=(1,1,290,290))
+pipeline.add_module(module)
+pipeline.run_module('reshape_psf')
 
 
 ## Loop through each separation and angle ##
@@ -230,9 +237,9 @@ angle_space = np.arange(0., 360., angle_step)
 contrast_map = np.zeros((len(sep_space), len(angle_space)))
 for i, sep in enumerate(sep_space):
     for j, angle in enumerate(angle_space):
-        print('\n------------------------------------------')
+        print('\n-------------------------------------')
         print('Beginning iterations for:', (sep, angle))
-        print('------------------------------------------\n')
+        print('-------------------------------------')
         
         #convert polar position into pixels
         pic = pipeline.get_data('science')
