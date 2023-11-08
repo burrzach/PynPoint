@@ -33,7 +33,7 @@ from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, Wavelengt
 from pynpoint.util.image import polar_to_cartesian
 from pynpoint.core.processing import ProcessingModule
 import configparser
-from scipy.optimize import minimize_scalar
+from scipy.optimize import root_scalar
 
 
 #settings
@@ -44,7 +44,7 @@ sep_step = 0.1     #arcsec
 inner_radius = 0.1 #arcsec
 outer_radius = 0.2 #arcsec
 threshold = 3e-7    #-
-tolerance = 1e-13   #-
+tolerance = 1e-6    #-
 iterations = 1000   #-
 
 
@@ -146,7 +146,7 @@ def PlanetInjection(mag, pipeline, pos_pix, threshold, subtract=False):
     
     fpf = pipeline.get_data('fpf')[0,5]
     
-    return abs(fpf - threshold)
+    return fpf - threshold
         
 
 #Initialize pipeline
@@ -261,22 +261,23 @@ for i, sep in enumerate(sep_space):
         pos_pix = polar_to_cartesian(pic, sep_pix, angle)
         
         #optimize to find brightness at threshold
-        res = minimize_scalar(PlanetInjection, 
-                              args=(pipeline, pos_pix, threshold, False),
-                              bounds=(0.,15),
-                              tol=tolerance,
-                              options={'maxiter':iterations, 'disp':3})
+        res = root_scalar(PlanetInjection, 
+                          args=(pipeline, pos_pix, threshold, False),
+                          bracket=(0.,10.),
+                          x0=5.,
+                          rtol=tolerance,
+                          maxiter=iterations,
+                          options={'disp':3})
         
         #grab results
         iterations = res.nit
         success = res.success
         message = res.message
         brightness = res.x
+        fpf = res.fun
         
         if success:
-            print(f'After {iterations}, optimization terminated successfully.\
-                  magnitude at ({sep},{angle}) is {brightness}')
-        print(message)
+            print(f'After {iterations} iterations, optimization terminated successfully.')
+            print('Magnitude at ({sep},{angle}) is {brightness}, with fpf {fpf}.')
         
         contrast_map[i,j] = brightness
-        
