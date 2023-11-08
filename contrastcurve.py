@@ -230,7 +230,9 @@ angle_space = np.arange(0., 360., angle_step)
 contrast_map = np.zeros((len(sep_space), len(angle_space)))
 for i, sep in enumerate(sep_space):
     for j, angle in enumerate(angle_space):
+        print('\n------------------------------------------')
         print('Beginning iterations for:', (sep, angle))
+        print('------------------------------------------\n')
         
         #convert polar position into pixels
         pic = pipeline.get_data('science')
