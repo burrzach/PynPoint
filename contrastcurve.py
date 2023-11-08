@@ -29,8 +29,7 @@ else:
 import numpy as np
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule, \
     PSFpreparationModule, AddLinesModule, RemoveFramesModule, AddFramesModule, \
-    FakePlanetModule, FalsePositiveModule, PcaPsfSubtractionModule, DerotateAndStackModule, \
-    FitsWritingModule
+    FakePlanetModule, FalsePositiveModule, PcaPsfSubtractionModule, DerotateAndStackModule
 from pynpoint.util.image import polar_to_cartesian
 from pynpoint.core.processing import ProcessingModule
 import configparser
@@ -40,10 +39,10 @@ from scipy.optimize import root_scalar
 #settings
 scale = 1.73 / 290  #arcsec/pixel
 radius = 0.035      #arcsec
-angle_step = 360     #deg
-sep_step = 0.1     #arcsec
-inner_radius = 0.3 #arcsec
-outer_radius = 0.4 #arcsec
+angle_step = 60     #deg
+sep_step = 0.05     #arcsec
+inner_radius = 0.15 #arcsec
+outer_radius = 0.8  #arcsec
 threshold = 3e-7    #-
 tolerance = 1e-6    #-
 iterations = 1000   #-
@@ -103,12 +102,6 @@ def PlanetInjection(mag, pipeline, sep, angle, pos_pix, threshold, subtract=Fals
                               magnitude=mag)
     pipeline.add_module(module)
     pipeline.run_module('fake')
-    
-    module = FitsWritingModule(name_in='write', 
-                               data_tag='injected',
-                               file_name=folder+'fake_injection_'+str(mag)+'.fits')
-    pipeline.add_module(module)
-    pipeline.run_module('write')
     
     #perform SDI if needed
     if subtract == True:
@@ -274,18 +267,20 @@ for i, sep in enumerate(sep_space):
                           bracket=(0.,10.),
                           x0=5.,
                           rtol=tolerance,
-                          maxiter=iterations,
-                          options={'disp':3})
-        
+                          maxiter=iterations)        
         #grab results
-        iterations = res.nit
-        success = res.success
-        message = res.message
-        brightness = res.x
-        fpf = res.fun
+        # iterations = res.nit
+        # success = res.success
+        # message = res.message
+        # brightness = res.x
+        # fpf = res.fun
         
-        if success:
-            print(f'After {iterations} iterations, optimization terminated successfully.')
-            print('Magnitude at ({sep},{angle}) is {brightness}, with fpf {fpf}.')
+        # if success:
+        #     print(f'After {iterations} iterations, optimization terminated successfully.')
+        #     print('Magnitude at ({sep},{angle}) is {brightness}, with fpf {fpf}.')
         
-        contrast_map[i,j] = brightness
+        print(res)
+        
+        contrast_map[i,j] = res.root
+        
+np.savetxt(folder+'contrast_map.txt', contrast_map)
