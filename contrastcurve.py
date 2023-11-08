@@ -29,7 +29,8 @@ else:
 import numpy as np
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule, \
     PSFpreparationModule, AddLinesModule, RemoveFramesModule, AddFramesModule, \
-    FakePlanetModule, FalsePositiveModule, PcaPsfSubtractionModule, DerotateAndStackModule
+    FakePlanetModule, FalsePositiveModule, PcaPsfSubtractionModule, DerotateAndStackModule, \
+    FitsWritingModule
 from pynpoint.util.image import polar_to_cartesian
 from pynpoint.core.processing import ProcessingModule
 import configparser
@@ -102,6 +103,12 @@ def PlanetInjection(mag, pipeline, sep, angle, pos_pix, threshold, subtract=Fals
                               magnitude=mag)
     pipeline.add_module(module)
     pipeline.run_module('fake')
+    
+    module = FitsWritingModule(name_in='write', 
+                               data_tag='injected',
+                               file_name=folder+'fake_injection_'+str(mag)+'.fits')
+    pipeline.add_module(module)
+    pipeline.run_module('write')
     
     #perform SDI if needed
     if subtract == True:
