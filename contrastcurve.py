@@ -290,7 +290,7 @@ for i, sep in enumerate(sep_space):
         #after subtraction
         res = root_scalar(PlanetInjection, 
                           args=(pipeline, sep, angle, pos_pix, threshold, True),
-                          bracket=(initial_guess_pre, 15.),
+                          bracket=(initial_guess_pre - 2., 15.),
                           x0=initial_guess_post,
                           rtol=tolerance,
                           maxiter=iterations)
