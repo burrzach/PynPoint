@@ -257,7 +257,10 @@ pipeline.run_module('reshape_psf')
 ## Setup variables for loop ##
 sep_space = np.arange(inner_radius, outer_radius, sep_step)
 angle_space = np.arange(0., 360., angle_step)
-contrast_map = np.zeros((2, len(sep_space), len(angle_space)))
+
+contrast_map_pre = np.full((len(sep_space), len(angle_space)), np.nan)
+contrast_map_post = np.full((len(sep_space), len(angle_space)), np.nan)
+
 initial_guess_pre = 4.
 initial_guess_post = 6.
 
@@ -284,8 +287,8 @@ for i, sep in enumerate(sep_space):
                           maxiter=iterations)
         
         print(res)
-        contrast_map[0,i,j] = res.root #save result
-        initial_guess_pre = contrast_map[0,i,j] #initial guess for next position
+        contrast_map_pre[i,j] = res.root #save result
+        initial_guess_pre = contrast_map_pre[i,j] #initial guess for next position
         
         #after subtraction
         res = root_scalar(PlanetInjection, 
@@ -296,10 +299,12 @@ for i, sep in enumerate(sep_space):
                           maxiter=iterations)
         
         print(res)
-        contrast_map[1,i,j] = res.root #save result
-        initial_guess_post = contrast_map[1,i,j] #initial guess for next position
-        
-np.savetxt(folder+'contrast_map.txt', contrast_map)
+        contrast_map_post[i,j] = res.root #save result
+        initial_guess_post = contrast_map_post[i,j] #initial guess for next position
+
+#save data
+np.savetxt(folder+'contrast_map_pre.txt', contrast_map_pre)
+np.savetxt(folder+'contrast_map_post.txt', contrast_map_post)
 
 t1 = time.time()
 dt = (t1 - t0)
