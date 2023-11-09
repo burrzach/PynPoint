@@ -34,7 +34,9 @@ from pynpoint.util.image import polar_to_cartesian
 from pynpoint.core.processing import ProcessingModule
 import configparser
 from scipy.optimize import root_scalar
+import time
 
+t0 = time.time()
 
 #settings
 scale = 1.73 / 290  #arcsec/pixel
@@ -245,10 +247,14 @@ pipeline.add_module(module)
 pipeline.run_module('reshape_psf')
 
 
-## Loop through each separation and angle ##
+## Setup variables for loop ##
 sep_space = np.arange(inner_radius, outer_radius, sep_step)
 angle_space = np.arange(0., 360., angle_step)
-contrast_map = np.zeros((len(sep_space), len(angle_space)))
+contrast_map = np.zeros((2, len(sep_space), len(angle_space)))
+initial_guess_pre = 5.
+initial_guess_post = 5.
+
+## Loop through each separation and angle ##
 for i, sep in enumerate(sep_space):
     for j, angle in enumerate(angle_space):
         print('\n-------------------------------------')
@@ -262,25 +268,34 @@ for i, sep in enumerate(sep_space):
         pos_pix = (x,y)
         
         #optimize to find brightness at threshold
+        #before subtraction
         res = root_scalar(PlanetInjection, 
                           args=(pipeline, sep, angle, pos_pix, threshold, False),
                           bracket=(0.,10.),
-                          x0=5.,
+                          x0=initial_guess_pre,
                           rtol=tolerance,
-                          maxiter=iterations)        
-        #grab results
-        # iterations = res.nit
-        # success = res.success
-        # message = res.message
-        # brightness = res.x
-        # fpf = res.fun
-        
-        # if success:
-        #     print(f'After {iterations} iterations, optimization terminated successfully.')
-        #     print('Magnitude at ({sep},{angle}) is {brightness}, with fpf {fpf}.')
+                          maxiter=iterations)
         
         print(res)
+        contrast_map[0,i,j] = res.root #save result
         
-        contrast_map[i,j] = res.root
+        #after subtraction
+        res = root_scalar(PlanetInjection, 
+                          args=(pipeline, sep, angle, pos_pix, threshold, True),
+                          bracket=(0.,10.),
+                          x0=initial_guess_post,
+                          rtol=tolerance,
+                          maxiter=iterations)
+        
+        print(res)
+        contrast_map[1,i,j] = res.root #save result
+        
+        #initial guess for next position is result from this one
+        initial_guess_pre = contrast_map[0,i,j] 
+        initial_guess_post = contrast_map[1,i,j]
         
 np.savetxt(folder+'contrast_map.txt', contrast_map)
+
+t1 = time.time()
+dt = (t1 - t0)
+print(f'\nContrast curve completed after {dt//60}minutes {dt%60}seconds.')
