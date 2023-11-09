@@ -35,6 +35,7 @@ from pynpoint.core.processing import ProcessingModule
 import configparser
 from scipy.optimize import root_scalar
 import time
+import glob
 
 t0 = time.time()
 
@@ -94,10 +95,10 @@ class ReshapeModule(ProcessingModule):
         
 
 #Function to inject planet of given brightness and find fpf
-def PlanetInjection(mag, pipeline, sep, angle, pos_pix, threshold, subtract=False):
+def PlanetInjection(mag, pipeline, science_image, sep, angle, pos_pix, threshold, subtract=False):
     #inject fake planet
     module = FakePlanetModule(name_in='fake',
-                              image_in_tag='science_derot', 
+                              image_in_tag=science_image, 
                               psf_in_tag='planet', 
                               image_out_tag='injected', 
                               position=(sep,angle), 
@@ -222,6 +223,7 @@ module = WavelengthReadingModule(name_in='wavelengthpsf',
 pipeline.add_module(module)
 pipeline.run_module('wavelengthpsf')
 
+
 ## Prepare PSF for injection ##
 module = RemoveFramesModule(name_in='slice_psf', 
                             image_in_tag='psf', 
@@ -254,6 +256,33 @@ pipeline.add_module(module)
 pipeline.run_module('reshape_psf')
 
 
+## Remove any existing planets ##
+science_image = 'science_derot'
+image_out = 'removed_1'
+count = 1
+comp_list = glob.glob(folder+'*companion*_data.txt')
+for file in comp_list:
+    count += 1
+    
+    comp_data = np.genfromtxt(file)
+    sep = comp_data[0,7]
+    angle = comp_data[0,9]
+    mag = comp_data[0,13]
+    
+    module = FakePlanetModule(name_in='remove_companion', 
+                              image_in_tag=science_image, 
+                              psf_in_tag='planet', 
+                              image_out_tag=image_out, 
+                              position=(sep,angle), 
+                              magnitude=mag,
+                              psf_scaling=-1.)
+    pipeline.add_module('remove_companion')
+    pipeline.run_module('remove_companion')
+    
+    science_image = image_out
+    image_out = image_out[:-1] + str(count)
+
+
 ## Setup variables for loop ##
 sep_space = np.arange(inner_radius, outer_radius, sep_step)
 angle_space = np.arange(0., 360., angle_step)
@@ -272,7 +301,7 @@ for i, sep in enumerate(sep_space):
         print('-------------------------------------')
         
         #convert separation and angle to pixel position
-        pic = pipeline.get_data('science_derot')
+        pic = pipeline.get_data(science_image)
         sep_pix = sep / scale
         y,x = polar_to_cartesian(pic, sep_pix, angle)
         pos_pix = (x,y)
@@ -280,7 +309,7 @@ for i, sep in enumerate(sep_space):
         #optimize to find brightness at threshold
         #before subtraction
         res = root_scalar(PlanetInjection, 
-                          args=(pipeline, sep, angle, pos_pix, threshold, False),
+                          args=(pipeline, science_image, sep, angle, pos_pix, threshold, False),
                           bracket=(0.,10.),
                           x0=initial_guess_pre,
                           rtol=tolerance,
@@ -292,7 +321,7 @@ for i, sep in enumerate(sep_space):
         
         #after subtraction
         res = root_scalar(PlanetInjection, 
-                          args=(pipeline, sep, angle, pos_pix, threshold, True),
+                          args=(pipeline, science_image, sep, angle, pos_pix, threshold, True),
                           bracket=(initial_guess_pre - 2., 15.),
                           x0=initial_guess_post,
                           rtol=tolerance,
