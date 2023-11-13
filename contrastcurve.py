@@ -337,4 +337,4 @@ np.savetxt(folder+'contrast_map_post.txt', contrast_map_post)
 
 t1 = time.time()
 dt = (t1 - t0)
-print(f'\nContrast curves completed after {dt//60}minutes {dt%60}seconds.')
+print(f'\nContrast curves completed after {int(dt//60)}minutes {int(dt%60)}seconds.')
