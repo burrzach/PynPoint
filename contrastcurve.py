@@ -50,6 +50,8 @@ threshold = 3e-7    #-
 tolerance = 1e-6    #-
 iterations = 1000   #-
 
+psf_folder = '' #!!!
+
 
 #Set configuration file
 config = configparser.ConfigParser()
@@ -332,8 +334,17 @@ for i, sep in enumerate(sep_space):
         initial_guess_post = contrast_map_post[i,j] #initial guess for next position
 
 #save data
-np.savetxt(folder+'contrast_map_pre.txt', contrast_map_pre)
-np.savetxt(folder+'contrast_map_post.txt', contrast_map_post)
+seps = np.full((len(sep_space)+1, 1), np.nan)
+for i, el in enumerate(sep_space):
+    seps[i+1, 0] = el
+    
+data = np.vstack((angle_space, contrast_map_pre))
+data = np.hstack((seps, data))
+np.savetxt(folder+'contrast_map_pre.txt', data)
+
+data = np.vstack((angle_space, contrast_map_post))
+data = np.hstack((seps, data))
+np.savetxt(folder+'contrast_map_post.txt', data)
 
 t1 = time.time()
 dt = (t1 - t0)
