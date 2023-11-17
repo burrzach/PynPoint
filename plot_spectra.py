@@ -10,13 +10,23 @@ obs_list = ["2023-05-27",
             "2023-05-30-2", 
             "2023-06-15-1",
             "2023-07-26-1",
-            "2023-08-07-2"]
+            "2023-08-07-2"
+            ]
 companion_list = {"2023-05-27":  2, 
                   "2023-05-30-2":1, 
                   "2023-06-15-1":1,
                   "2023-07-26-1":1,
                   "2023-08-07-2":2}
-model = "T4500_g45"
+models = {#'BT_5000_45_0_0.txt': '5000', 
+          'BT_4500_45_0_0.txt': '4500',
+          'BT_4000_45_0_0.txt': '4000',
+          'BT_3500_45_0_0.txt': '3500',
+          'BT_3000_45_0_0.txt': '3000',
+          'BT_2500_45_0_0.txt': '2500',
+          'BT_2000_45_0_0.txt': '2000',
+          'BT_1500_45_0_0.txt': '1500',}
+
+host_model = 'BT_4500_45_0_0.txt'
 
 
 ## Define Functions ##
@@ -69,10 +79,6 @@ for obs in obs_list:
     comp_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"+obs+"_companion1_data.txt"
     data = np.genfromtxt(comp_file)
     
-    #load stellar model
-    star_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/starmodel_"+model+".txt"
-    star_model = np.genfromtxt(star_file)
-    
     
     #print stats
     print(obs)
@@ -86,9 +92,14 @@ for obs in obs_list:
     #format spectra
     wl = data[1:,0] / 1e3 #convert nm -> micron
     wl.sort()
-    star_spectra = data[1:,1] - data[1:,2]
-    star_error = data[1:,3]
+    #star_spectra = data[1:,1] - data[1:,2]
+    #star_error = data[1:,3]
+    star_spectra = data[1:,1]
+    star_error = np.zeros(star_spectra.shape)
     
+    #load stellar model
+    star_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/star_models/"+host_model
+    star_model = np.genfromtxt(star_file)
     
     #bin stellar model
     star_wl = star_model[:,0] / 1e4 #convert angstrom -> micron
@@ -119,12 +130,12 @@ for obs in obs_list:
         error *= fitting
     if n_companions > 1:
         plt.errorbar(wl, comp, yerr=error, marker='o', label='companion 1')
-        plt.figure('snr'+obs)
-        plt.plot(wl, snr, marker='o', label='companion 1')
+        #plt.figure('snr'+obs)
+        #plt.plot(wl, snr, marker='o', label='companion 1')
     else:
         plt.errorbar(wl, comp, yerr=error, marker='o', label='companion')
-        plt.figure('snr'+obs)
-        plt.plot(wl, snr, marker='o', label='companion')
+        #plt.figure('snr'+obs)
+        #plt.plot(wl, snr, marker='o', label='companion')
         
     
     #repeat for each companion beyond the first
@@ -147,23 +158,39 @@ for obs in obs_list:
         
         plt.figure('spectra'+obs)
         plt.errorbar(wl, comp, yerr=error, marker='o', label='companion '+str(i))
-        plt.figure('snr'+obs)
-        plt.plot(wl, snr, marker='o', label='companion '+str(i))
+        #plt.figure('snr'+obs)
+        #plt.plot(wl, snr, marker='o', label='companion '+str(i))
+        
     
+    #plot each model
+    plt.figure('spectra'+obs)
+    for model in models.keys():
+        #load stellar model
+        star_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/star_models/"+model
+        star_model = np.genfromtxt(star_file)
+        
+        #bin stellar model
+        star_wl = star_model[:,0] / 1e4 #convert angstrom -> micron
+        model_spectra = bin_spectra(star_wl, star_model[:,1], wl)
+        model_spectra *= ratio
+        
+        #plot model
+        plt.plot(wl, model_spectra, marker='^', label='T_eff='+models[model], alpha=0.6)
+        
     
     #plot settings
     plt.figure('spectra'+obs)
-    plt.plot(wl, model_spectra, marker='s', label='stellar model')
+    #plt.plot(wl, model_spectra, marker='s', label='stellar model')
     plt.legend()
     plt.xlabel('$\lambda$ $[\mu m]$')
     plt.title(obs)
     
-    plt.figure('snr'+obs)
-    if n_companions > 1:
-        plt.legend()
-    plt.xlabel('$\lambda$ $[\mu m]$')
-    plt.ylabel('SNR [-]')
-    plt.ylim(bottom=0)
-    plt.title(obs+' snr')
+    # plt.figure('snr'+obs)
+    # if n_companions > 1:
+    #     plt.legend()
+    # plt.xlabel('$\lambda$ $[\mu m]$')
+    # plt.ylabel('SNR [-]')
+    # plt.ylim(bottom=0)
+    # plt.title(obs+' snr')
     
     plt.show()

@@ -248,7 +248,7 @@ pic = pipeline.get_data('psf3D')
 center = center_subpixel(pic)
 pos = (center[0], (2 * star_radius / scale) + center[1] )
 module = FalsePositiveModule(name_in='star_noise', 
-                             image_in_tag='psf_derot', 
+                             image_in_tag='psf3D', 
                              snr_out_tag='psf_noise', 
                              position=pos, 
                              aperture=star_radius,
