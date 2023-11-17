@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 ## Settings ##
 fit_model = True
+fit_companion = False
 
 obs_list = ["2023-05-27", 
             "2023-05-30-2", 
@@ -92,10 +93,8 @@ for obs in obs_list:
     #format spectra
     wl = data[1:,0] / 1e3 #convert nm -> micron
     wl.sort()
-    #star_spectra = data[1:,1] - data[1:,2]
-    #star_error = data[1:,3]
-    star_spectra = data[1:,1]
-    star_error = np.zeros(star_spectra.shape)
+    star_spectra = data[1:,1] #- data[1:,2]
+    star_error = data[1:,3]
     
     #load stellar model
     star_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/star_models/"+host_model
@@ -163,19 +162,20 @@ for obs in obs_list:
         
     
     #plot each model
-    plt.figure('spectra'+obs)
-    for model in models.keys():
-        #load stellar model
-        star_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/star_models/"+model
-        star_model = np.genfromtxt(star_file)
-        
-        #bin stellar model
-        star_wl = star_model[:,0] / 1e4 #convert angstrom -> micron
-        model_spectra = bin_spectra(star_wl, star_model[:,1], wl)
-        model_spectra *= ratio
-        
-        #plot model
-        plt.plot(wl, model_spectra, marker='^', label='T_eff='+models[model], alpha=0.6)
+    if fit_companion:
+        plt.figure('spectra'+obs)
+        for model in models.keys():
+            #load stellar model
+            star_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/star_models/"+model
+            star_model = np.genfromtxt(star_file)
+            
+            #bin stellar model
+            star_wl = star_model[:,0] / 1e4 #convert angstrom -> micron
+            model_spectra = bin_spectra(star_wl, star_model[:,1], wl)
+            model_spectra *= ratio
+            
+            #plot model
+            plt.plot(wl, model_spectra, marker='^', label='T_eff='+models[model], alpha=0.6)
         
     
     #plot settings
