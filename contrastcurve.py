@@ -50,7 +50,7 @@ threshold = 3e-7    #-
 tolerance = 1e-6    #-
 iterations = 1000   #-
 
-psf_folder = '' #!!!
+psf_folder = '/data/zburr/yses_ifu/2nd_epoch/processed/2023-06-15-2/products/' #!!!
 
 
 #Set configuration file
@@ -207,7 +207,7 @@ pipeline.set_attribute(data_tag='science_derot',
 ## Load PSF ##
 module = FitsReadingModule(name_in='readpsf',
                             image_tag='psf',
-                            filenames=[folder+'psf_cube.fits'],
+                            filenames=[psf_folder+'psf_cube.fits'],
                             input_dir=None,
                             ifs_data=True)
 pipeline.add_module(module)
