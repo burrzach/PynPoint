@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 
 ## Settings ##
 fit_model = True
-fit_companion = False
+fit_companion = True
+
+temp_range = range(45, 14, -5)
 
 obs_list = ["2023-05-27", 
             "2023-05-30-2", 
@@ -18,17 +20,13 @@ companion_list = {"2023-05-27":  2,
                   "2023-06-15-1":1,
                   "2023-07-26-1":1,
                   "2023-08-07-2":2}
-models = {#'BT_5000_45_0_0.txt': '5000', 
-          'BT_4500_45_0_0.txt': '4500',
-          'BT_4000_45_0_0.txt': '4000',
-          'BT_3500_45_0_0.txt': '3500',
-          'BT_3000_45_0_0.txt': '3000',
-          'BT_2500_45_0_0.txt': '2500',
-          'BT_2000_45_0_0.txt': '2000',
-          'BT_1500_45_0_0.txt': '1500',}
+host_temp = {"2023-05-27":  47, 
+             "2023-05-30-2":48, 
+             "2023-06-15-1":40,
+             "2023-07-26-1":41,
+             "2023-08-07-2":45}
 
-host_model = 'BT_4500_45_0_0.txt'
-
+folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"
 
 ## Define Functions ##
 def bin_spectra(model_wl, model_values, central_wl):
@@ -77,7 +75,7 @@ for obs in obs_list:
     
     ## Analysis ##
     #load companion data
-    comp_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"+obs+"_companion1_data.txt"
+    comp_file = folder+obs+"_companion1_data.txt"
     data = np.genfromtxt(comp_file)
     
     
@@ -97,7 +95,7 @@ for obs in obs_list:
     star_error = data[1:,3]
     
     #load stellar model
-    star_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/star_models/"+host_model
+    star_file = folder+"star_models/BT_0"+str(host_temp[obs])+"_45_0_0.txt"
     star_model = np.genfromtxt(star_file)
     
     #bin stellar model
@@ -116,7 +114,8 @@ for obs in obs_list:
     
     #make figure and plot star
     plt.figure('spectra'+obs)
-    plt.errorbar(wl, star_spectra, yerr=star_error, marker='*', label='host star')
+    plt.errorbar(wl, star_spectra, yerr=star_error, marker='*', 
+                 label='host star (T_eff='+str(host_temp[obs]*100)+')')
     plt.yscale('log')
     
     #plot first companion
@@ -164,9 +163,9 @@ for obs in obs_list:
     #plot each model
     if fit_companion:
         plt.figure('spectra'+obs)
-        for model in models.keys():
+        for temp in temp_range:
             #load stellar model
-            star_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/star_models/"+model
+            star_file = folder+"star_models/BT_0"+str(temp)+"_45_0_0.txt"
             star_model = np.genfromtxt(star_file)
             
             #bin stellar model
@@ -175,7 +174,7 @@ for obs in obs_list:
             model_spectra *= ratio
             
             #plot model
-            plt.plot(wl, model_spectra, marker='^', label='T_eff='+models[model], alpha=0.6)
+            plt.plot(wl, model_spectra, marker='^', label='T_eff='+str(temp*100), alpha=0.6)
         
     
     #plot settings
