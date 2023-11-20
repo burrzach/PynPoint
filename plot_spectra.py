@@ -4,23 +4,26 @@ import matplotlib.pyplot as plt
 
 
 ## Settings ##
-fit_model = True
-fit_companion = True
+fit_model = True     #fit host spectrum to match model
+plot_models = True   #plot range of model spectra to compare to companion
+plot_host = False    #plot host star spectrum
+fit_companion = True #scale models to value of companion
 
-temp_range = range(45, 14, -5)
+temp_range = range(35, 29, -1) #range of temperatures to plot models
+#temp_range = [45]
 
-obs_list = ["2023-05-27", 
-            "2023-05-30-2", 
+obs_list = [#"2023-05-27",    #which observations to plot
+            #"2023-05-30-2", 
             "2023-06-15-1",
-            "2023-07-26-1",
+            #"2023-07-26-1",
             "2023-08-07-2"
             ]
-companion_list = {"2023-05-27":  2, 
+companion_list = {"2023-05-27":  2, #how many companions are in each system
                   "2023-05-30-2":1, 
                   "2023-06-15-1":1,
                   "2023-07-26-1":1,
                   "2023-08-07-2":2}
-host_temp = {"2023-05-27":  47, 
+host_temp = {"2023-05-27":  47, #host star temperature/model to compare
              "2023-05-30-2":48, 
              "2023-06-15-1":40,
              "2023-07-26-1":41,
@@ -114,26 +117,47 @@ for obs in obs_list:
     
     #make figure and plot star
     plt.figure('spectra'+obs)
-    plt.errorbar(wl, star_spectra, yerr=star_error, marker='*', 
-                 label='host star (T_eff='+str(host_temp[obs]*100)+')')
     plt.yscale('log')
+    if plot_host:
+        plt.errorbar(wl, star_spectra, yerr=star_error, marker='*', 
+                     label='host star (T_eff='+str(host_temp[obs]*100)+')')
     
     #plot first companion
     comp = data[1:,4] - data[1:,6]
     error = data[1:,5]
     snr = data[1:,11]
     
+    if obs == "2023-06-15-1":
+        comp *= 0.5 #divide by 2 because companion is a binary
+    
     if fit_model == True:
         comp *= fitting
         error *= fitting
     if n_companions > 1:
-        plt.errorbar(wl, comp, yerr=error, marker='o', label='companion 1')
+        plt.errorbar(wl, comp, yerr=error, marker='o', label='companion 1', color='orange')
         #plt.figure('snr'+obs)
         #plt.plot(wl, snr, marker='o', label='companion 1')
     else:
-        plt.errorbar(wl, comp, yerr=error, marker='o', label='companion')
+        plt.errorbar(wl, comp, yerr=error, marker='o', label='companion', color='orange')
         #plt.figure('snr'+obs)
         #plt.plot(wl, snr, marker='o', label='companion')
+        
+    
+    #determine scaling for models if necessary
+    if fit_companion:
+        #load stellar model
+        temp = int(np.round(np.mean(temp_range),0))
+        star_file = folder+"star_models/BT_0"+str(temp)+"_45_0_0.txt"
+        star_model = np.genfromtxt(star_file)
+        
+        #bin stellar model
+        star_wl = star_model[:,0] / 1e4 #convert angstrom -> micron
+        model_spectra = bin_spectra(star_wl, star_model[:,1], wl)
+        
+        #calculate ratio
+        ratio = np.mean(comp) / np.mean(model_spectra)
+        if n_companions > 1:
+            ratio *= 0.8
         
     
     #repeat for each companion beyond the first
@@ -155,13 +179,13 @@ for obs in obs_list:
             error *= fitting
         
         plt.figure('spectra'+obs)
-        plt.errorbar(wl, comp, yerr=error, marker='o', label='companion '+str(i))
+        plt.errorbar(wl, comp, yerr=error, marker='o', label='companion '+str(i), color='green')
         #plt.figure('snr'+obs)
         #plt.plot(wl, snr, marker='o', label='companion '+str(i))
         
     
     #plot each model
-    if fit_companion:
+    if plot_models:
         plt.figure('spectra'+obs)
         for temp in temp_range:
             #load stellar model
