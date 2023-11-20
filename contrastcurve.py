@@ -215,13 +215,13 @@ pipeline.run_module('readpsf')
 
 module = ParangReadingModule(name_in='parangpsf',
                               data_tag='psf',
-                              file_name=folder+'psf_derot.fits')
+                              file_name=psf_folder+'psf_derot.fits')
 pipeline.add_module(module)
 pipeline.run_module('parangpsf')
 
 module = WavelengthReadingModule(name_in='wavelengthpsf',
                                   data_tag='psf',
-                                  file_name=folder+'wavelength.fits')
+                                  file_name=psf_folder+'wavelength.fits')
 pipeline.add_module(module)
 pipeline.run_module('wavelengthpsf')
 
@@ -278,7 +278,7 @@ for file in comp_list:
                               position=(sep,angle), 
                               magnitude=mag,
                               psf_scaling=-1.)
-    pipeline.add_module('remove_companion')
+    pipeline.add_module(module)
     pipeline.run_module('remove_companion')
     
     science_image = image_out
