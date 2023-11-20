@@ -50,7 +50,7 @@ threshold = 3e-7    #-
 tolerance = 1e-6    #-
 iterations = 1000   #-
 
-psf_folder = '/data/zburr/yses_ifu/2nd_epoch/processed/2023-06-15-2/products/' #!!!
+psf_folder = '/home/zburr/PynPoint/6-15-2/'
 
 
 #Set configuration file
@@ -338,13 +338,14 @@ seps = np.full((len(sep_space)+1, 1), np.nan)
 for i, el in enumerate(sep_space):
     seps[i+1, 0] = el
     
-data = np.vstack((angle_space, contrast_map_pre))
-data = np.hstack((seps, data))
-np.savetxt(folder+'contrast_map_pre.txt', data)
+data1 = np.vstack((angle_space, contrast_map_pre))
+data1 = np.hstack((seps, data1))
 
-data = np.vstack((angle_space, contrast_map_post))
-data = np.hstack((seps, data))
-np.savetxt(folder+'contrast_map_post.txt', data)
+data2 = np.vstack((angle_space, contrast_map_post))
+data2 = np.hstack((seps, data2))
+
+data = np.vstack((data1, data2))
+np.savetxt(folder+'contrast_map.txt', data)
 
 t1 = time.time()
 dt = (t1 - t0)
