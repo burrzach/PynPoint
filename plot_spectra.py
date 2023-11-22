@@ -9,8 +9,8 @@ plot_models = True   #plot range of model spectra to compare to companion
 plot_host = False    #plot host star spectrum
 fit_companion = True #scale models to value of companion
 
-temp_range = range(35, 29, -1) #range of temperatures to plot models
-#temp_range = [45]
+temp_range = range(40, 30, -1) #range of temperatures to plot models
+#temp_range = [35]
 
 obs_list = [#"2023-05-27",    #which observations to plot
             #"2023-05-30-2", 

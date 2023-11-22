@@ -4,20 +4,27 @@ import glob
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from astropy.io import fits
-from pathlib import Path
-from tqdm import trange
-from astropy.stats.sigma_clipping import sigma_clip
-from astroquery.simbad import Simbad
+from scipy.interpolate import interp1d
 
 #settings
 props_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/star_data.csv"
+curves_folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/contrast_curves/"
+tracks_folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/phillips2020/" + \
+    "evolutionary_tracks/ATMO_2020/ATMO_CEQ/SPHERE_IRDIS/"
+companions_folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"
+
 psf_obs = '2023-06-15-2'
-curves_folder = ...
+M_SUN_TO_M_JUP = 1047.34
+
+companion_list = {"2023-05-27":  2, #how many companions are in each system
+                  "2023-05-30-2":1, 
+                  "2023-06-15-1":1,
+                  "2023-07-26-1":1,
+                  "2023-08-07-2":2}
 
 #functions
 def apparent_to_absolute(mag, distance):
-    return mag - 5 * np.log10(distance) - 5
+    return mag - 5 * np.log10(distance) + 5
 
 def open_evolutionary_tracks(input_dir, extension="txt", rows_header=2):
     '''Read in csv data from evolutionary tracks.
@@ -64,49 +71,131 @@ def open_evolutionary_tracks(input_dir, extension="txt", rows_header=2):
 
     return header, data_all
 
+def mag_mass_relate(age_system, track_dir="doc/SPHERE_IRDIS_vega/"):
+    '''Convert magnitudes to jupiter masses, given the age of the system.
+
+    Parameters
+    ----------
+    magnitudes: array_like
+        The known contrast magnitudes.
+    age_system: float
+        The age of the star/planetary system in Myr
+    track_dir: str, default="doc/SPHERE_IRDIS_vega/"
+        The directory where the evolutionary tracks are stored.
+
+    Returns
+    -------
+    mag2mass: func
+        Scipy interpolator which will convert magnitude to mass
+    mass2mag: func
+        Scipy interpolator which will convert mass to magnitude
+    '''
+    mag_to_jupmass = []
+    _, evolutionary_tracks = open_evolutionary_tracks(track_dir)
+
+    # Magic numbers used: ind 0=mass (M_sun), 1=age (Gyr), 18=J band magnitude
+
+    for model in evolutionary_tracks:
+        # Model age is in Gyr, age_system is in Myr
+        ind = np.searchsorted(1000*model[:,1], age_system)
+        if ind == len(model):
+            ind -= 1
+        elif (ind+1 < len(model)) and ((model[ind+1,1] - age_system) < (age_system - model[ind,1])):
+            ind+=1  # Check if the value to the right is closer
+        if not model[ind,18] == 0:
+            mag_to_jupmass.append([model[ind,18], model[ind,0]*M_SUN_TO_M_JUP])
+
+    mag_to_jupmass = np.array(mag_to_jupmass)
+    mag_to_jupmass = mag_to_jupmass[np.argsort(mag_to_jupmass[:,1])]
+    mag_to_jupmass = mag_to_jupmass[::-1] # np.interp needs a monotonically increasing array
+    mag2mass = interp1d(mag_to_jupmass[:,0], mag_to_jupmass[:,1], kind='linear', 
+                        fill_value='extrapolate')
+    mass2mag = interp1d(mag_to_jupmass[:,1], mag_to_jupmass[:,0], kind='linear', 
+                        fill_value='extrapolate')
+    return mag2mass, mass2mag
+
 #load star properties
 star_props = pd.read_csv(props_file, index_col=0)
 fake_app_mag = star_props.loc[star_props['obs'] == psf_obs, 'J'].iloc[0]
+fake_err = star_props.loc[star_props['obs'] == psf_obs, 'J_err'].iloc[0]
 
-#load data
-file = ...
-contrast_map = np.genfromtxt(file)
-
-seps = int((contrast_map.shape[0] / 2))
-sep_space = contrast_map[1:seps, 0]
-angle_space = contrast_map[0, 1:]
-
-pre_map = contrast_map[1:seps, 1:]
-post_map = contrast_map[seps+1:, 1:]
-
-#grab properties
-obs = file[-29:-17]
-while obs[0] != '2':
-    obs = obs[1:]
-
-dist = star_props.loc[star_props['obs'] == obs, 'dist'].iloc[0]
-age = star_props.loc[star_props['obs'] == obs, 'age'].iloc[0]
-
-# #calculations
-# sep_space = pre_map[1:, 0]
-# angle_space = pre_map[0, 1:]
-
-# pre_map = pre_map[1:, 1:]
-# post_map = post_map[1:, 1:]
-
-# pre_curve = [np.mean(pre_map[i]) for i in range(len(pre_map))]
-# pre_error = [np.std(pre_map[i]) for i in range(len(pre_map))]
-# post_curve = [np.mean(post_map[i]) for i in range(len(post_map))]
-# post_error = [np.std(post_map[i]) for i in range(len(post_map))]
-
-
-# #plot
-# plt.figure()
-# plt.errorbar(sep_space, pre_curve, yerr=pre_error, marker='o', capsize=3, label='Before SDI')
-# plt.errorbar(sep_space, post_curve, yerr=post_error, marker='o', capsize=3, label='After SDI')
-# plt.gca().invert_yaxis()
-# plt.xlim(xmin=0)
-# plt.xlabel('Separation [arcsec]')
-# plt.ylabel('Contrast [-]')
-# plt.legend()
-# plt.show()
+#find all contrast curves
+file_list = glob.glob(curves_folder + '*contrast_map.txt')
+for file in file_list:
+    #load data
+    contrast_map = np.genfromtxt(file)
+    
+    seps = int((contrast_map.shape[0] / 2))
+    sep_space = contrast_map[1:seps, 0]
+    angle_space = contrast_map[0, 1:]
+    
+    pre_map = contrast_map[1:seps, 1:]
+    post_map = contrast_map[seps+1:, 1:]
+    
+    #grab properties
+    obs = file[-29:-17]
+    while obs[0] != '2':
+        obs = obs[1:]
+    
+    dist = star_props.loc[star_props['obs'] == obs, 'dist'].iloc[0]
+    age = star_props.loc[star_props['obs'] == obs, 'age'].iloc[0]
+    
+    mag2mass, mass2mag = mag_mass_relate(age, tracks_folder)
+    
+    #calculations
+    pre_curve = np.mean(pre_map, 1) + fake_app_mag
+    pre_error = np.std(pre_map, 1) + fake_err
+    abs_pre_curve = apparent_to_absolute(pre_curve, dist)
+    
+    #mass_pre_curve = mag2mass(abs_pre_curve)
+    
+    post_curve = np.mean(post_map, 1) + fake_app_mag
+    post_error = np.std(post_map, 1) + fake_err
+    abs_post_curve = apparent_to_absolute(post_curve, dist)
+    
+    #mass_post_curve = mag2mass(abs_post_curve)
+    
+    #plot
+    fig, ax1 = plt.subplots()
+    ax1.errorbar(sep_space, abs_pre_curve, yerr=pre_error, marker='o', 
+                 capsize=3, label='Before SDI')
+    ax1.errorbar(sep_space, abs_post_curve, yerr=post_error, marker='o', 
+                 capsize=3, label='After SDI') 
+    ax1.invert_yaxis()
+    ax1.set_xlim(xmin=0)
+    ax1.set_xlabel('Separation [arcsec]')
+    ax1.set_ylabel('Absolute magnitude [-]')
+    ax1.set_title(obs + " Contrast Curve")
+    ax1.legend()
+    
+    ax2 = ax1.secondary_yaxis('right', functions=(mag2mass, mass2mag))
+    ax2.set_ylabel('Mass [$M_{Jup}$]')
+    mass_ticks = [100, 50, 25, 12, 6]
+    ax2.set_yticks(mass_ticks)
+    
+    #check for companions
+    if obs in companion_list.keys():
+        n_companions = companion_list[obs]
+        for i in range(1, n_companions+1):
+            comp_file = companions_folder + obs + f"_companion{i}_data.txt"
+            data = np.genfromtxt(comp_file)
+            
+            sep = data[0,7]
+            #sep_err = data[0,8]
+            
+            dmag = data[0,13]
+            #dmag_err = ...
+            
+            star_mag = star_props.loc[star_props['obs'] == psf_obs, 'J'].iloc[0]
+            #star_err = star_props.loc[star_props['obs'] == psf_obs, 'J_err'].iloc[0]
+            
+            mag = apparent_to_absolute(dmag + star_mag, dist)
+            #mag_err = apparent_to_absolute(dmag_err + star_err, dist)
+            
+            if n_companions == 1:
+                label = "Candidate companion"
+            else:
+                label = f"Candidate companion {i}"
+            # ax1.errorbar(sep, mag, xerr=sep_err, yerr=mag_err, marker='*',
+            #              capsize=3, label=label)
+            ax1.scatter(sep, mag, marker='*', label=label)
