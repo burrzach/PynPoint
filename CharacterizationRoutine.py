@@ -18,7 +18,7 @@ import math
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule,\
     AddFramesModule, RemoveFramesModule, FalsePositiveModule, AperturePhotometryModule, \
     DerotateAndStackModule, FitCenterModule, FakePlanetModule, PSFpreparationModule, \
-    AddLinesModule
+    AddLinesModule, FitsWritingModule
 from pynpoint.core.processing import ProcessingModule
 from pynpoint.util.image import cartesian_to_polar, center_subpixel
 import configparser
@@ -261,6 +261,11 @@ star_noise = pipeline.get_data('psf_noise')
 
 pic = pipeline.get_data('science_coadd')
 center = center_subpixel(pic)
+
+## Write out deroted cube ##
+module = FitsWritingModule(name_in='write_derotated', 
+                           data_tag='science_derot', 
+                           file_name=folder+'science_cube_derotated.fits')
 
 ## Loop for multiple companions ##
 for i, guess in enumerate(pos_guess):

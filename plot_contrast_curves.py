@@ -120,7 +120,7 @@ fake_app_mag = star_props.loc[star_props['obs'] == psf_obs, 'J'].iloc[0]
 fake_err = star_props.loc[star_props['obs'] == psf_obs, 'J_err'].iloc[0]
 
 #find all contrast curves
-file_list = glob.glob(curves_folder + '*contrast_map.txt')
+file_list = glob.glob(curves_folder + 'data/*contrast_map.txt')
 for file in file_list:
     #load data
     contrast_map = np.genfromtxt(file)
@@ -199,3 +199,5 @@ for file in file_list:
             # ax1.errorbar(sep, mag, xerr=sep_err, yerr=mag_err, marker='*',
             #              capsize=3, label=label)
             ax1.scatter(sep, mag, marker='*', label=label)
+            
+    fig.savefig(curves_folder + 'figures/'+ obs + '_contrastcurve.png')
