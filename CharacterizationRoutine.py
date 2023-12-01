@@ -266,6 +266,8 @@ center = center_subpixel(pic)
 module = FitsWritingModule(name_in='write_derotated', 
                            data_tag='science_derot', 
                            file_name=folder+'science_cube_derotated.fits')
+pipeline.add_module(module)
+pipeline.run_module('write_derotated')
 
 ## Loop for multiple companions ##
 for i, guess in enumerate(pos_guess):
