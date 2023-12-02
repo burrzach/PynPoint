@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
+from math import ceil
 
 #settings
 props_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/star_data.csv"
@@ -21,6 +22,10 @@ companion_list = {"2023-05-27":  2, #how many companions are in each system
                   "2023-06-15-1":1,
                   "2023-07-26-1":1,
                   "2023-08-07-2":2}
+
+obs_per_image = 9 #number of images to plot in each grid
+ncols = 3         #number of columns worth of images in each grid
+mass_ticks = [100, 50, 25, 12, 6] #what values of mass to put tick marks for
 
 #functions
 def apparent_to_absolute(mag, distance):
@@ -121,83 +126,180 @@ fake_err = star_props.loc[star_props['obs'] == psf_obs, 'J_err'].iloc[0]
 
 #find all contrast curves
 file_list = glob.glob(curves_folder + 'data/*contrast_map.txt')
-for file in file_list:
-    #load data
-    contrast_map = np.genfromtxt(file)
+# for file in file_list:
+#     #load data
+#     contrast_map = np.genfromtxt(file)
     
-    seps = int((contrast_map.shape[0] / 2))
-    sep_space = contrast_map[1:seps, 0]
-    angle_space = contrast_map[0, 1:]
+#     seps = int((contrast_map.shape[0] / 2))
+#     sep_space = contrast_map[1:seps, 0]
+#     angle_space = contrast_map[0, 1:]
     
-    pre_map = contrast_map[1:seps, 1:]
-    post_map = contrast_map[seps+1:, 1:]
+#     pre_map = contrast_map[1:seps, 1:]
+#     post_map = contrast_map[seps+1:, 1:]
     
-    #grab properties
-    obs = file[-29:-17]
-    while obs[0] != '2':
-        obs = obs[1:]
+#     #grab properties
+#     obs = file[-29:-17]
+#     while obs[0] != '2':
+#         obs = obs[1:]
     
-    dist = star_props.loc[star_props['obs'] == obs, 'dist'].iloc[0]
-    age = star_props.loc[star_props['obs'] == obs, 'age'].iloc[0]
+#     dist = star_props.loc[star_props['obs'] == obs, 'dist'].iloc[0]
+#     age = star_props.loc[star_props['obs'] == obs, 'age'].iloc[0]
     
-    mag2mass, mass2mag = mag_mass_relate(age, tracks_folder)
+#     mag2mass, mass2mag = mag_mass_relate(age, tracks_folder)
     
-    #calculations
-    pre_curve = np.mean(pre_map, 1) + fake_app_mag
-    pre_error = np.std(pre_map, 1) + fake_err
-    abs_pre_curve = apparent_to_absolute(pre_curve, dist)
+#     #calculations
+#     pre_curve = np.mean(pre_map, 1) + fake_app_mag
+#     pre_error = np.std(pre_map, 1) + fake_err
+#     abs_pre_curve = apparent_to_absolute(pre_curve, dist)
     
-    #mass_pre_curve = mag2mass(abs_pre_curve)
+#     #mass_pre_curve = mag2mass(abs_pre_curve)
     
-    post_curve = np.mean(post_map, 1) + fake_app_mag
-    post_error = np.std(post_map, 1) + fake_err
-    abs_post_curve = apparent_to_absolute(post_curve, dist)
+#     post_curve = np.mean(post_map, 1) + fake_app_mag
+#     post_error = np.std(post_map, 1) + fake_err
+#     abs_post_curve = apparent_to_absolute(post_curve, dist)
     
-    #mass_post_curve = mag2mass(abs_post_curve)
+#     #mass_post_curve = mag2mass(abs_post_curve)
     
-    #plot
-    fig, ax1 = plt.subplots()
-    ax1.errorbar(sep_space, abs_pre_curve, yerr=pre_error, marker='o', 
-                 capsize=3, label='Before SDI')
-    ax1.errorbar(sep_space, abs_post_curve, yerr=post_error, marker='o', 
-                 capsize=3, label='After SDI') 
-    ax1.invert_yaxis()
-    ax1.set_xlim(xmin=0)
-    ax1.set_xlabel('Separation [arcsec]')
-    ax1.set_ylabel('Absolute magnitude [-]')
-    ax1.set_title(obs + " Contrast Curve")
-    ax1.legend()
+#     #plot
+#     fig, ax1 = plt.subplots()
+#     ax1.errorbar(sep_space, abs_pre_curve, yerr=pre_error, marker='o', 
+#                  capsize=3, label='Before SDI')
+#     ax1.errorbar(sep_space, abs_post_curve, yerr=post_error, marker='o', 
+#                  capsize=3, label='After SDI') 
+#     ax1.invert_yaxis()
+#     ax1.set_xlim(xmin=0)
+#     ax1.set_xlabel('Separation [arcsec]')
+#     ax1.set_ylabel('Absolute magnitude [-]')
+#     ax1.set_title(obs + " Contrast Curve")
+#     ax1.legend()
     
-    ax2 = ax1.secondary_yaxis('right', functions=(mag2mass, mass2mag))
-    ax2.set_ylabel('Mass [$M_{Jup}$]')
-    mass_ticks = [100, 50, 25, 12, 6]
-    ax2.set_yticks(mass_ticks)
+#     ax2 = ax1.secondary_yaxis('right', functions=(mag2mass, mass2mag))
+#     ax2.set_ylabel('Mass [$M_{Jup}$]')
+#     mass_ticks = [100, 50, 25, 12, 6]
+#     ax2.set_yticks(mass_ticks)
     
-    #check for companions
-    if obs in companion_list.keys():
-        n_companions = companion_list[obs]
-        for i in range(1, n_companions+1):
-            comp_file = companions_folder + obs + f"_companion{i}_data.txt"
-            data = np.genfromtxt(comp_file)
+#     #check for companions
+#     if obs in companion_list.keys():
+#         n_companions = companion_list[obs]
+#         for i in range(1, n_companions+1):
+#             comp_file = companions_folder + obs + f"_companion{i}_data.txt"
+#             data = np.genfromtxt(comp_file)
             
-            sep = data[0,7]
-            #sep_err = data[0,8]
+#             sep = data[0,7]
+#             #sep_err = data[0,8]
             
-            dmag = data[0,13]
-            #dmag_err = ...
+#             dmag = data[0,13]
+#             #dmag_err = ...
             
-            star_mag = star_props.loc[star_props['obs'] == psf_obs, 'J'].iloc[0]
-            #star_err = star_props.loc[star_props['obs'] == psf_obs, 'J_err'].iloc[0]
+#             star_mag = star_props.loc[star_props['obs'] == psf_obs, 'J'].iloc[0]
+#             #star_err = star_props.loc[star_props['obs'] == psf_obs, 'J_err'].iloc[0]
             
-            mag = apparent_to_absolute(dmag + star_mag, dist)
-            #mag_err = apparent_to_absolute(dmag_err + star_err, dist)
+#             mag = apparent_to_absolute(dmag + star_mag, dist)
+#             #mag_err = apparent_to_absolute(dmag_err + star_err, dist)
             
-            if n_companions == 1:
-                label = "Candidate companion"
-            else:
-                label = f"Candidate companion {i}"
-            # ax1.errorbar(sep, mag, xerr=sep_err, yerr=mag_err, marker='*',
-            #              capsize=3, label=label)
-            ax1.scatter(sep, mag, marker='*', label=label)
+#             if n_companions == 1:
+#                 label = "Candidate companion"
+#             else:
+#                 label = f"Candidate companion {i}"
+#             # ax1.errorbar(sep, mag, xerr=sep_err, yerr=mag_err, marker='*',
+#             #              capsize=3, label=label)
+#             ax1.scatter(sep, mag, marker='*', label=label)
             
-    fig.savefig(curves_folder + 'figures/'+ obs + '_contrastcurve.png')
+#     fig.savefig(curves_folder + 'figures/'+ obs + '_contrastcurve.png')
+    
+
+#loop through each image
+image_indices = range(0,len(file_list),obs_per_image)
+grid = 0
+for n in range(len(image_indices)):
+    grid += 1
+    if n == len(image_indices)-1:
+        subset = file_list[image_indices[n]:]
+    else:
+        subset = file_list[image_indices[n]:image_indices[n+1]]
+    
+    #create figure
+    nrows = ceil(len(subset) / ncols)
+    fig, axes = plt.subplots(nrows, ncols, constrained_layout=True, sharex=True, sharey=True)
+    
+    #loop through observations in this subset
+    for i, file in enumerate(subset):
+        #load data
+        contrast_map = np.genfromtxt(file)
+        
+        seps = int((contrast_map.shape[0] / 2))
+        sep_space = contrast_map[1:seps, 0]
+        angle_space = contrast_map[0, 1:]
+        
+        pre_map = contrast_map[1:seps, 1:]
+        post_map = contrast_map[seps+1:, 1:]
+        
+        #grab properties
+        obs = file[-29:-17]
+        while obs[0] != '2':
+            obs = obs[1:]
+        
+        dist = star_props.loc[star_props['obs'] == obs, 'dist'].iloc[0]
+        age = star_props.loc[star_props['obs'] == obs, 'age'].iloc[0]
+        
+        mag2mass, mass2mag = mag_mass_relate(age, tracks_folder)
+        
+        #calculations
+        pre_curve = np.mean(pre_map, 1) + fake_app_mag
+        pre_error = np.std(pre_map, 1) + fake_err
+        abs_pre_curve = apparent_to_absolute(pre_curve, dist)
+        
+        #mass_pre_curve = mag2mass(abs_pre_curve)
+        
+        post_curve = np.mean(post_map, 1) + fake_app_mag
+        post_error = np.std(post_map, 1) + fake_err
+        abs_post_curve = apparent_to_absolute(post_curve, dist)
+        
+        #mass_post_curve = mag2mass(abs_post_curve)
+        
+        #plot
+        ax1 = axes[i//ncols, i%ncols]
+        
+        ax1.errorbar(sep_space, abs_pre_curve, yerr=pre_error, marker='o', 
+                     capsize=3, label='Before SDI')
+        ax1.errorbar(sep_space, abs_post_curve, yerr=post_error, marker='o', 
+                     capsize=3, label='After SDI') 
+        ax1.invert_yaxis()
+        ax1.set_xlim(xmin=0)
+        ax1.set_xlabel('Separation [arcsec]')
+        ax1.set_ylabel('Absolute magnitude [-]')
+        ax1.set_title(obs)
+        ax1.legend()
+        ax1.yaxis.set_tick_params(labelleft=True)
+        
+        ax2 = ax1.secondary_yaxis('right', functions=(mag2mass, mass2mag))
+        ax2.set_ylabel('Mass [$M_{Jup}$]')
+        ax2.set_yticks(mass_ticks)
+        
+        
+        #check for companions
+        if obs in companion_list.keys():
+            n_companions = companion_list[obs]
+            for j in range(1, n_companions+1):
+                comp_file = companions_folder + obs + f"_companion{j}_data.txt"
+                data = np.genfromtxt(comp_file)
+                
+                sep = data[0,7]
+                #sep_err = data[0,8]
+                
+                dmag = data[0,13]
+                #dmag_err = ...
+                
+                star_mag = star_props.loc[star_props['obs'] == psf_obs, 'J'].iloc[0]
+                #star_err = star_props.loc[star_props['obs'] == psf_obs, 'J_err'].iloc[0]
+                
+                mag = apparent_to_absolute(dmag + star_mag, dist)
+                #mag_err = apparent_to_absolute(dmag_err + star_err, dist)
+                
+                if n_companions == 1:
+                    label = "Candidate companion"
+                else:
+                    label = f"Candidate companion {j}"
+                # ax1.errorbar(sep, mag, xerr=sep_err, yerr=mag_err, marker='*',
+                #              capsize=3, label=label)
+                ax1.scatter(sep, mag, marker='*', label=label)
