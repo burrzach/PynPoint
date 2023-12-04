@@ -6,21 +6,21 @@ import pandas as pd
 
 ## Settings ##
 fit_model = True     #fit host spectrum to match model
-plot_models = True   #plot range of model spectra to compare to companion
+plot_models = False   #plot range of model spectra to compare to companion
 plot_host = True     #plot host star spectrum
 fit_companion = False #scale models to value of companion when plotting
 find_best_fit = False #find model which fits closest to companion spectrum
 calc_distance = True #calculate true distance based off best fit temperature
-binary_scaling = False #halve brightness (for) binary companions
+binary_scaling = True#halve brightness (for) binary companions
 
-temp_range = range(40, 19, -5) #range of temperatures to plot models
-#temp_range = []
+temp_range = range(45, 29, -5) #range of temperatures to plot models
+temp_range = []
 
-obs_list = [#"2023-05-27",    #which observations to plot
+obs_list = ["2023-05-27",    #which observations to plot
             #"2023-05-30-2", 
             #"2023-06-15-1",
             #"2023-07-26-1",
-            "2023-08-07-2"
+            #"2023-08-07-2"
             ]
 companion_list = {"2023-05-27":  2, #how many companions are in each system
                   "2023-05-30-2":1,
@@ -32,7 +32,7 @@ host_temp = {"2023-05-27":  47, #host star temperature/model to compare
              "2023-06-15-1":40,
              "2023-07-26-1":41,
              "2023-08-07-2":45}
-comp_fit_temp = {"2023-05-27":  [20, 20], #host star temperature/model to compare
+comp_fit_temp = {"2023-05-27":  [42, 42], #best fit model for each companion
                  "2023-05-30-2":[60], 
                  "2023-06-15-1":[34],
                  "2023-07-26-1":[49],
@@ -41,7 +41,8 @@ comp_fit_temp = {"2023-05-27":  [20, 20], #host star temperature/model to compar
 folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"
 props_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/star_data.csv"
 
-exclude = None
+exclude = None #exclude certain data points when doing the best fit determination
+#exclude = range(12,23)
 
 ## Define Functions ##
 def bin_spectra(model_wl, model_values, central_wl):
@@ -116,6 +117,10 @@ def calc_dist(apparent, absolute):
     return 10 ** ((apparent-absolute+5) / 5)
 
 
+fitting_dict = {}
+noise_dict = {}
+host_dict = {}
+
 #perform calculations and plotting for all observations
 for obs in obs_list:
     n_companions = companion_list[obs]
@@ -138,9 +143,11 @@ for obs in obs_list:
     #format spectra
     wl = data[1:,0] / 1e3 #convert nm -> micron
     wl.sort()
-    star_spectra = data[1:,1] #- data[1:,2]
+    star_spectra = data[1:,1] - data[1:,2] #!!!
     star_error = data[1:,3]
     
+    host_dict[obs] = data[1:,1]
+    noise_dict[obs] = data[1:,2]
     
     #load all spectra models for later
     model_dict = {}
@@ -164,6 +171,8 @@ for obs in obs_list:
         fitting = model_spectra / star_spectra
         star_spectra *= fitting
         star_error *= fitting
+        
+    fitting_dict[obs] = fitting
     
     
     #make figure and plot star
@@ -178,16 +187,20 @@ for obs in obs_list:
     error = data[1:,5]
     snr = data[1:,11]
     
-    #if obs == "2023-06-15-1" or obs == "2023-05-27":
+    # if obs == "2023-06-15-1" or obs == "2023-05-27" or obs == "2023-08-07-2": #!!!
+    #     binary_scaling = True
+    # else:
+    #     binary_scaling = False
+    
     if binary_scaling:
         comp *= 0.5 #divide by 2 because companion is a binary
-        #exclude = range(12,22)
     
     if fit_model == True:
         comp *= fitting
         error *= fitting
     if n_companions > 1:
-        plt.errorbar(wl, comp, yerr=error, marker='s', label='companion 1 (combined brightness)', color='orange', alpha=0.5) #!!!
+        #plt.errorbar(wl, comp, yerr=error, marker='s', label='companion 1 (combined brightness)', color='orange', alpha=0.5) #!!!
+        plt.errorbar(wl, comp, yerr=error, marker='o', label='companion 1', color='orange')
         plt.figure('snr'+obs)
         plt.plot(wl, snr, marker='o', label='companion 1', color='orange')
     else:
@@ -238,7 +251,10 @@ for obs in obs_list:
         app_mag_comp = dmag + star_app_mag
         
         best_fit = model_dict[comp_fit_temp[obs][0]] * ratio * fitting
-        model_dmag = -2.5 * np.log10(sum(best_fit[2:-2])*2 /  sum(star_spectra[2:-2])) #!!!
+        if binary_scaling:
+            model_dmag = -2.5 * np.log10(sum(best_fit[2:-2])*2 /  sum(star_spectra[2:-2]))
+        else:
+            model_dmag = -2.5 * np.log10(sum(best_fit[2:-2]) /  sum(star_spectra[2:-2]))
         model_abs_mag = apparent_to_absolute(model_dmag + star_app_mag, dist)
         
         comp_dist = calc_dist(app_mag_comp, model_abs_mag)
@@ -250,13 +266,14 @@ for obs in obs_list:
         #load stellar model
         temp = int(np.round(np.mean(temp_range),0))
         model_spectra = model_dict[temp]
+        model_spectra = model_dict[temp_range[0]] #!!!
         
         #calculate ratio
         ratio = np.mean(comp[1:-1]) / np.mean(model_spectra[1:-1])
         
     
     #repeat for each companion beyond the first
-    for i in range(1, n_companions+1): #!!!
+    for i in range(2, n_companions+1): #!!!
         #load companion data
         comp_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"+\
             obs+"_companion"+str(i)+"_data.txt"
@@ -273,13 +290,13 @@ for obs in obs_list:
             comp *= fitting
             error *= fitting
         
-        if i == 1:
-            comp *= 0.5 #!!!
+        if i == 1: #!!!
+            comp *= 0.5
             plt.figure('spectra'+obs)
-            plt.errorbar(wl, comp, yerr=error, marker='o', label='companion 1 (halved)', color='orange') #!!!
+            plt.errorbar(wl, comp, yerr=error, marker='o', label='companion 1 (halved)', color='orange')
         else:
             plt.figure('spectra'+obs)
-            plt.errorbar(wl, comp, yerr=error, marker='o', label='companion 2', color='green')
+            plt.errorbar(wl, comp, yerr=error, marker='o', label=f'companion {i}', color='green')
             plt.figure('snr'+obs)
             plt.plot(wl, snr, marker='o', label='companion '+str(i), color='green')
         
@@ -336,7 +353,7 @@ for obs in obs_list:
     
     #plot settings
     plt.figure('spectra'+obs)
-    plt.legend()
+    plt.legend(loc='upper right')
     plt.xlabel('$\lambda$ $[\mu m]$')
     plt.ylabel('Flux [erg/$cm^2$/s/A]')
     plt.title(obs)
@@ -358,5 +375,5 @@ for obs in obs_list:
         ax2.legend()
         ax2.set_xlabel('T_eff [K]')
         ax2.set_ylabel('RMSE [-]')
-    
-    plt.show()
+        
+        ax1.set_title(obs)

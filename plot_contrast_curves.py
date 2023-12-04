@@ -27,6 +27,13 @@ obs_per_image = 9 #number of images to plot in each grid
 ncols = 3         #number of columns worth of images in each grid
 mass_ticks = [100, 50, 25, 12, 6] #what values of mass to put tick marks for
 
+plot_duplicates = False #plot observations of same star again? Or only the last one of each star
+
+#load properties and drop duplicates
+star_props = pd.read_csv(props_file, index_col=0)
+star_props = star_props.drop_duplicates(subset='2MASS', keep='last')
+observations = np.array(star_props['obs'])
+
 #functions
 def apparent_to_absolute(mag, distance):
     return mag - 5 * np.log10(distance) + 5
@@ -120,93 +127,11 @@ def mag_mass_relate(age_system, track_dir="doc/SPHERE_IRDIS_vega/"):
     return mag2mass, mass2mag
 
 #load star properties
-star_props = pd.read_csv(props_file, index_col=0)
 fake_app_mag = star_props.loc[star_props['obs'] == psf_obs, 'J'].iloc[0]
 fake_err = star_props.loc[star_props['obs'] == psf_obs, 'J_err'].iloc[0]
 
 #find all contrast curves
-file_list = glob.glob(curves_folder + 'data/*contrast_map.txt')
-# for file in file_list:
-#     #load data
-#     contrast_map = np.genfromtxt(file)
-    
-#     seps = int((contrast_map.shape[0] / 2))
-#     sep_space = contrast_map[1:seps, 0]
-#     angle_space = contrast_map[0, 1:]
-    
-#     pre_map = contrast_map[1:seps, 1:]
-#     post_map = contrast_map[seps+1:, 1:]
-    
-#     #grab properties
-#     obs = file[-29:-17]
-#     while obs[0] != '2':
-#         obs = obs[1:]
-    
-#     dist = star_props.loc[star_props['obs'] == obs, 'dist'].iloc[0]
-#     age = star_props.loc[star_props['obs'] == obs, 'age'].iloc[0]
-    
-#     mag2mass, mass2mag = mag_mass_relate(age, tracks_folder)
-    
-#     #calculations
-#     pre_curve = np.mean(pre_map, 1) + fake_app_mag
-#     pre_error = np.std(pre_map, 1) + fake_err
-#     abs_pre_curve = apparent_to_absolute(pre_curve, dist)
-    
-#     #mass_pre_curve = mag2mass(abs_pre_curve)
-    
-#     post_curve = np.mean(post_map, 1) + fake_app_mag
-#     post_error = np.std(post_map, 1) + fake_err
-#     abs_post_curve = apparent_to_absolute(post_curve, dist)
-    
-#     #mass_post_curve = mag2mass(abs_post_curve)
-    
-#     #plot
-#     fig, ax1 = plt.subplots()
-#     ax1.errorbar(sep_space, abs_pre_curve, yerr=pre_error, marker='o', 
-#                  capsize=3, label='Before SDI')
-#     ax1.errorbar(sep_space, abs_post_curve, yerr=post_error, marker='o', 
-#                  capsize=3, label='After SDI') 
-#     ax1.invert_yaxis()
-#     ax1.set_xlim(xmin=0)
-#     ax1.set_xlabel('Separation [arcsec]')
-#     ax1.set_ylabel('Absolute magnitude [-]')
-#     ax1.set_title(obs + " Contrast Curve")
-#     ax1.legend()
-    
-#     ax2 = ax1.secondary_yaxis('right', functions=(mag2mass, mass2mag))
-#     ax2.set_ylabel('Mass [$M_{Jup}$]')
-#     mass_ticks = [100, 50, 25, 12, 6]
-#     ax2.set_yticks(mass_ticks)
-    
-#     #check for companions
-#     if obs in companion_list.keys():
-#         n_companions = companion_list[obs]
-#         for i in range(1, n_companions+1):
-#             comp_file = companions_folder + obs + f"_companion{i}_data.txt"
-#             data = np.genfromtxt(comp_file)
-            
-#             sep = data[0,7]
-#             #sep_err = data[0,8]
-            
-#             dmag = data[0,13]
-#             #dmag_err = ...
-            
-#             star_mag = star_props.loc[star_props['obs'] == psf_obs, 'J'].iloc[0]
-#             #star_err = star_props.loc[star_props['obs'] == psf_obs, 'J_err'].iloc[0]
-            
-#             mag = apparent_to_absolute(dmag + star_mag, dist)
-#             #mag_err = apparent_to_absolute(dmag_err + star_err, dist)
-            
-#             if n_companions == 1:
-#                 label = "Candidate companion"
-#             else:
-#                 label = f"Candidate companion {i}"
-#             # ax1.errorbar(sep, mag, xerr=sep_err, yerr=mag_err, marker='*',
-#             #              capsize=3, label=label)
-#             ax1.scatter(sep, mag, marker='*', label=label)
-            
-#     fig.savefig(curves_folder + 'figures/'+ obs + '_contrastcurve.png')
-    
+file_list = glob.glob(curves_folder + 'data/*contrast_map.txt') #!!! TODO: remove this and tie to observations list instead
 
 #loop through each image
 image_indices = range(0,len(file_list),obs_per_image)
