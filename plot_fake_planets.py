@@ -209,3 +209,5 @@ fig.set_figwidth(5.5)
 img = plt.imshow(raw[0], origin='lower', extent=[size, -size, -size, size])
 cb = plt.colorbar(img, location='left', shrink=0.5)
 cb.set_label('Flux [counts]')
+
+plt.savefig(folder+'ContrastCurveInjection.png')
