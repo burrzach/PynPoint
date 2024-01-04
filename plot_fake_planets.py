@@ -225,4 +225,7 @@ img = plt.imshow(raw[0], origin='lower', extent=[size, -size, -size, size])
 cb = plt.colorbar(img, location='right', shrink=0.8)
 cb.set_label('Flux [counts]')
 
+plt.xlabel('RA [arcsec]')
+plt.ylabel('Dec [arcsec]')
+
 plt.savefig(folder+'ContrastCurveInjection.png', bbox_inches='tight')
