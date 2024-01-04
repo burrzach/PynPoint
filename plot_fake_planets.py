@@ -13,6 +13,7 @@ from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, Wavelengt
 from pynpoint.util.image import polar_to_cartesian
 from pynpoint.core.processing import ProcessingModule
 #import configparser
+import matplotlib.pyplot as plt
 
 scale = 1.73 / 290  #arcsec/pixel
 radius = 0.035      #arcsec
@@ -194,3 +195,17 @@ module = FitsWritingModule(name_in='write_injected',
                            file_name=folder+'ContrastCurveInjection.fits')
 pipeline.add_module(module)
 pipeline.run_module('write_injected')
+
+
+#plot image
+raw = pipeline.get_data('coadd')
+
+size = scale * raw.shape[-1]/2.
+
+plt.rcParams.update({'font.size': 15})
+fig = plt.figure()
+fig.set_figheight(5)
+fig.set_figwidth(5.5)
+img = plt.imshow(raw[0], origin='lower', extent=[size, -size, -size, size])
+cb = plt.colorbar(img, location='left', shrink=0.5)
+cb.set_label('Flux [counts]')
