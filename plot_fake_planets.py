@@ -139,6 +139,21 @@ pipeline.add_module(module)
 pipeline.run_module('wavelength')
 
 
+## Prepare science image ##
+module = DerotateAndStackModule(name_in='derotate_science',
+                                image_in_tag='science',
+                                image_out_tag='science_derot',
+                                derotate=True,
+                                stack=None)
+pipeline.add_module(module)
+pipeline.run_module('derotate_science')
+
+pipeline.set_attribute(data_tag='science_derot', 
+                       attr_name='PARANG', 
+                       attr_value=np.array([0.]),
+                       static=False)
+
+
 #Read in contrast curve data
 contrast_map = np.genfromtxt(curve)
 
@@ -210,4 +225,4 @@ img = plt.imshow(raw[0], origin='lower', extent=[size, -size, -size, size])
 cb = plt.colorbar(img, location='left', shrink=0.5)
 cb.set_label('Flux [counts]')
 
-plt.savefig(folder+'ContrastCurveInjection.png')
+plt.savefig(folder+'ContrastCurveInjection.png', bbox_inches='tight')
