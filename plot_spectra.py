@@ -9,16 +9,18 @@ fit_model = True     #fit host spectrum to match model
 plot_models = False   #plot range of model spectra to compare to companion
 plot_host = True     #plot host star spectrum
 fit_companion = False #scale models to value of companion when plotting
-find_best_fit = False #find model which fits closest to companion spectrum
-calc_distance = True #calculate true distance based off best fit temperature
+find_best_fit = True #find model which fits closest to companion spectrum
+calc_distance = False #calculate true distance based off best fit temperature
 binary_scaling = True#halve brightness (for) binary companions
 
-temp_range = range(45, 29, -5) #range of temperatures to plot models
-temp_range = []
+temp_range = range(60, 3, -1) #range of temperatures to plot models
+#temp_range = []
 
-obs_list = ["2023-05-27",    #which observations to plot
+plt.rcParams.update({'font.size': 15})
+
+obs_list = [#"2023-05-27",    #which observations to plot
             #"2023-05-30-2", 
-            #"2023-06-15-1",
+            "2023-06-15-1",
             #"2023-07-26-1",
             #"2023-08-07-2"
             ]
@@ -129,6 +131,7 @@ for obs in obs_list:
     #load companion data
     comp_file = folder+obs+"_companion1_data.txt"
     data = np.genfromtxt(comp_file)
+    comp1data = data
     
     
     #print stats
@@ -143,7 +146,7 @@ for obs in obs_list:
     #format spectra
     wl = data[1:,0] / 1e3 #convert nm -> micron
     wl.sort()
-    star_spectra = data[1:,1] - data[1:,2] #!!!
+    star_spectra = data[1:,1] - data[1:,2]
     star_error = data[1:,3]
     
     host_dict[obs] = data[1:,1]
@@ -230,13 +233,13 @@ for obs in obs_list:
         fig, (ax1, ax2) = plt.subplots(1, 2)
         if n_companions > 1:
             ax1.errorbar(wl, comp, yerr=error, marker='o', label='companion 1', color='orange')
-            label=f'companion 1 best fit\n(T_eff={best_fit_temp*100}, RMSE={best_fit_goodness}'
+            label=f'companion 1 best fit\n(T_eff={best_fit_temp*100}, RMSE={best_fit_goodness})'
             ax1.plot(wl, model_spectra_scaled, marker='^', label=label, color='orange', alpha=0.6)
             
             ax2.plot(np.array(temp_range)*100, model_goodness, label='companion 1', color='orange')
         else:
             ax1.errorbar(wl, comp, yerr=error, marker='o', label='companion', color='orange')
-            label=f'companion best fit\n(T_eff={best_fit_temp*100}, RMSE={best_fit_goodness}'
+            label=f'companion best fit\n(T_eff={best_fit_temp*100}, RMSE={best_fit_goodness})'
             ax1.plot(wl, model_spectra_scaled, marker='^', label=label, color='orange', alpha=0.6)
             
             ax2.plot(np.array(temp_range)*100, model_goodness, label='companion', color='orange')
@@ -266,13 +269,14 @@ for obs in obs_list:
         #load stellar model
         temp = int(np.round(np.mean(temp_range),0))
         model_spectra = model_dict[temp]
-        model_spectra = model_dict[temp_range[0]] #!!!
+        #model_spectra = model_dict[temp_range[0]] #!!!
         
         #calculate ratio
         ratio = np.mean(comp[1:-1]) / np.mean(model_spectra[1:-1])
         
     
     #repeat for each companion beyond the first
+    comp1 = comp #save data on 1st companion first to allow comparing
     for i in range(2, n_companions+1): #!!!
         #load companion data
         comp_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"+\
@@ -320,10 +324,15 @@ for obs in obs_list:
             model_spectra_scaled = model_spectra * scaling
             
             ax1.errorbar(wl, comp, yerr=error, marker='o', label=f'companion {i}', color='green')
-            label=f'companion {i} best fit\n(T_eff={best_fit_temp*100}, RMSE={best_fit_goodness}'
+            label=f'companion {i} best fit\n(T_eff={best_fit_temp*100}, RMSE={best_fit_goodness})'
             ax1.plot(wl, model_spectra_scaled, marker='^', label=label, color='green', alpha=0.6)
             
             ax2.plot(np.array(temp_range)*100, model_goodness, label=f'companion {i}', color='green')
+            
+            comp_comparison1 = RMSE(comp1, comp)
+            print(f'Companion 2 vs 1 RMSE: {comp_comparison1}')
+            comp_comparison2 = RMSE(comp, comp1)
+            print(f'Companion 1 vs 2 RMSE: {comp_comparison2}')
             
         #calculate distance to companion
         if calc_distance:
@@ -340,6 +349,8 @@ for obs in obs_list:
             
             comp_dist = calc_dist(app_mag_comp, model_abs_mag)
             print(f'Companion {i} true distance: ', np.round(comp_dist,3), ' pc')
+            
+        comp2 = comp #save for analysis after the fact
         
     
     #plot each model
@@ -348,7 +359,8 @@ for obs in obs_list:
         model_goodness = np.empty((len(temp_range)))
         for temp in temp_range:
             model_spectra = model_dict[temp] * ratio
-            plt.plot(wl, model_spectra, marker='^', label='T_eff='+str(temp*100), alpha=0.6)
+            plt.plot(wl, model_spectra, alpha=0.6) #label='T_eff='+str(temp*100)
+            plt.text(wl[-2], model_spectra[-2]*1.05, f'{temp*100}K')
             
     
     #plot settings
@@ -372,7 +384,8 @@ for obs in obs_list:
         ax1.set_xlabel('$\lambda$ $[\mu m]$')
         ax1.set_ylabel('Flux [erg/$cm^2$/s/A]')
         
-        ax2.legend()
+        if n_companions > 1:
+            ax2.legend()
         ax2.set_xlabel('T_eff [K]')
         ax2.set_ylabel('RMSE [-]')
         

@@ -27,8 +27,6 @@ obs_per_image = 9 #number of images to plot in each grid
 ncols = 3         #number of columns worth of images in each grid
 mass_ticks = [100, 50, 25, 12, 6] #what values of mass to put tick marks for
 
-plot_duplicates = False #plot observations of same star again? Or only the last one of each star
-
 #load properties and drop duplicates
 star_props = pd.read_csv(props_file, index_col=0)
 star_props = star_props.drop_duplicates(subset='2MASS', keep='last')
@@ -180,7 +178,8 @@ for n in range(len(image_indices)):
         post_error = np.std(post_map, 1) + fake_err
         abs_post_curve = apparent_to_absolute(post_curve, dist)
         
-        #mass_post_curve = mag2mass(abs_post_curve)
+        mass_post_curve = mag2mass(abs_post_curve)
+        sep_au = sep_space * dist
         
         #plot
         ax1 = axes[i//ncols, i%ncols]

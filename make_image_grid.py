@@ -23,21 +23,21 @@ star_props = pd.read_csv(props_file, index_col=0)
 star_props = star_props.drop_duplicates(subset='2MASS', keep='last')
 observations = np.array(star_props['obs'])
 observations = np.array(["2023-05-27",    #just systems with candidates
-                         #"2023-05-30-2", 
-                         #"2023-06-15-1",
-                         #"2023-07-26-1",
-                         #"2023-08-07-2"
+                         "2023-05-30-2", 
+                         "2023-06-15-1",
+                         "2023-07-26-1",
+                         "2023-08-07-2"
                           ])
-obs_per_image = 9 #number of images to plot in each grid
-ncols = 3         #number of columns worth of images in each grid
+obs_per_image = 1 #number of images to plot in each grid
+ncols = 1         #number of columns worth of images in each grid
 
-companion_list = {"2023-05-27":  1, #how many companions are in each system
+companion_list = {"2023-05-27":  2, #how many companions are in each system
                   "2023-05-30-2":1, 
                   "2023-06-15-1":1,
                   "2023-07-26-1":1,
                   "2023-08-07-2":2}
-radius = 0.035
-bi_radius = 0.05
+radius = 0.04
+bi_radius = 0.1
 scale = 1.73 / 290
 
 #loop through each image
@@ -53,7 +53,7 @@ for n in range(len(image_indices)):
     #create figure
     nrows = ceil(len(subset) / ncols)
     nsubplts = 2
-    fig = plt.figure()
+    fig = plt.figure(layout='constrained')
     
     #loop through observations in this subset
     for i, ob in enumerate(subset):
@@ -90,16 +90,16 @@ for n in range(len(image_indices)):
         #plot raw
         size = scale * raw.shape[-1]/2.
         
-        ag[0].imshow(raw[0], origin='lower', extent=[size, -size, -size, size])
-        #cb = ag[0].colorbar()
-        #cb.set_label('Flux (ADU)', size=14.)
+        img = ag[0].imshow(raw[0], origin='lower', extent=[size, -size, -size, size])
+        cb = plt.colorbar(img, ax=ag[0], location='bottom', pad=0.5, orientation='horizontal', shrink=0.5)
+        cb.set_label('Flux [counts]', size=14.)
         
         #plot resid
         size = scale * resid.shape[-1]/2.
         
-        ag[1].imshow(resid[0], origin='lower', extent=[size, -size, -size, size])
-        #cb = ag[1].colorbar()
-        #cb.set_label('Flux (ADU)', size=14.)
+        img = ag[1].imshow(resid[0], origin='lower', extent=[size, -size, -size, size])
+        cb = plt.colorbar(img, ax=ag[1], location='bottom', pad=0.5, orientation='horizontal', shrink=0.5)
+        cb.set_label('Flux [counts]', size=14.)
         
         if ob in companion_list.keys():
             if ob == '2023-06-15-1':
@@ -118,11 +118,11 @@ for n in range(len(image_indices)):
                 x = (pos[1] - raw.shape[-1]/2) * -scale
                 
                 circle0 = plt.Circle((x,y), radius=app_rad, color='red',
-                                    fill=False, ls=':')
+                                    fill=False, ls=':', lw=1.5)
                 ag[0].add_patch(circle0)
                 
                 circle1 = plt.Circle((x,y), radius=app_rad, color='red',
-                                    fill=False, ls=':')
+                                    fill=False, ls=':', lw=1.5)
                 ag[1].add_patch(circle1)
         
     #plt.savefig(output_folder + f'subtraction_grid{grid}', bbox_inches='tight')
