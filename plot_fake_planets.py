@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 scale = 1.73 / 290  #arcsec/pixel
 radius = 0.035      #arcsec
 angles = [0., 120., 240.]
-seps = [0.2, 0.4, 0.6]
+sep_list = [0.2, 0.4, 0.6]
 
 folder = '/data/zburr/yses_ifu/2nd_epoch/processed/2023-06-15-2/products/'
 curve = folder+'contrast_map.txt'
@@ -153,7 +153,7 @@ image_in = 'science'
 image_out = 'add_1'
 count = 1
 for ang in angles:
-    for sep in seps:
+    for sep in sep_list:
         count += 1
         
         i_ang = np.argmax(angle_space == ang)
