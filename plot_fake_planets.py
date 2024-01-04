@@ -8,20 +8,20 @@ Created on Fri Dec 22 16:42:50 2023
 import numpy as np
 from pynpoint import Pypeline, FitsReadingModule, ParangReadingModule, WavelengthReadingModule, \
     PSFpreparationModule, AddLinesModule, RemoveFramesModule, AddFramesModule, \
-    FakePlanetModule, FalsePositiveModule, PcaPsfSubtractionModule, DerotateAndStackModule
+    FakePlanetModule, FalsePositiveModule, PcaPsfSubtractionModule, DerotateAndStackModule, \
+    FitsWritingModule
 from pynpoint.util.image import polar_to_cartesian
 from pynpoint.core.processing import ProcessingModule
-import configparser
+#import configparser
 
 scale = 1.73 / 290  #arcsec/pixel
 radius = 0.035      #arcsec
 angles = [0., 120., 240.]
 seps = [0.2, 0.4, 0.6]
 
-psf_folder = '/home/zburr/PynPoint/6-15-2/'
-folder = ...
-curve = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/contrast_curves/2023-06-15-2_contrast_map.txt"
-
+folder = '/data/zburr/yses_ifu/2nd_epoch/processed/2023-06-15-2/products/'
+curve = folder+'contrast_map.txt'
+psf_folder = folder
 
 #Module to reshape arrays (to drop/add extra dimension)
 class ReshapeModule(ProcessingModule):
@@ -115,7 +115,30 @@ module = ReshapeModule(name_in='reshape_psf',
 pipeline.add_module(module)
 pipeline.run_module('reshape_psf')
 
-#Read in data
+
+#Load science image
+module = FitsReadingModule(name_in='read',
+                           image_tag='science',
+                           filenames=[folder+'science_cube.fits'],
+                           input_dir=None,
+                           ifs_data=True)
+pipeline.add_module(module)
+pipeline.run_module('read')
+
+module = ParangReadingModule(name_in='parang',
+                              data_tag='science',
+                              file_name=folder+'science_derot.fits')
+pipeline.add_module(module)
+pipeline.run_module('parang')
+
+module = WavelengthReadingModule(name_in='wavelength',
+                                 data_tag='science',
+                                 file_name=folder+'wavelength.fits')
+pipeline.add_module(module)
+pipeline.run_module('wavelength')
+
+
+#Read in contrast curve data
 contrast_map = np.genfromtxt(curve)
 
 seps = int((contrast_map.shape[0] / 2))
@@ -125,16 +148,49 @@ angle_space = contrast_map[0, 1:]
 pre_map = contrast_map[1:seps, 1:]
 post_map = contrast_map[seps+1:, 1:]
 
+image_in = 'science'
+image_out = 'add_1'
+count = 1
 for ang in angles:
     for sep in seps:
+        count += 1
+        
         i_ang = np.argmax(angle_space == ang)
         i_sep = np.argmax(sep_space == sep)
         mag = pre_map[i_sep, i_ang]
         
-        #!!! TODO:
-        #Next step: inject fake planet with fake planet module
-        #Perform subtraction?? Will be difficult if injecting planets radially like this, could do planets in spiral or smt
-        #Coadd
-        #Output fits file
-        #Plot image in matplotlib and save
-        #(May need to do injection on server and plotting on laptop.)
+        module = FakePlanetModule(name_in='fake', 
+                                  image_in_tag=image_in, 
+                                  psf_in_tag='planet', 
+                                  image_out_tag=image_out,
+                                  position=(sep, ang), 
+                                  magnitude=mag)
+        pipeline.add_module(module)
+        pipeline.run_module('fake')
+        
+        image_in = image_out
+        image_out = image_out[:-1] + str(count)
+        
+
+#coadd image
+module = RemoveFramesModule(name_in='slice_science', 
+                            image_in_tag=image_out, 
+                            selected_out_tag='sliced', 
+                            removed_out_tag='trash', 
+                            frames=[0,1,37,38])
+pipeline.add_module(module)
+pipeline.run_module('slice_science')
+
+module = AddFramesModule(name_in='coadd_science', 
+                         image_in_tag='sliced', 
+                         image_out_tag='coadd')
+pipeline.add_module(module)
+pipeline.run_module('coadd_science')
+
+
+#save fits file
+module = FitsWritingModule(name_in='write_injected',
+                           data_tag='coadd',
+                           file_name=folder+'ContrastCurveInjection.fits')
+pipeline.add_module(module)
+pipeline.run_module('write_injected')
