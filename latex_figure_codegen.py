@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 
 props_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/star_data.csv"
-out_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/cubes/plotted/place_figures.txt"
+out_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/contrast_curves/figures/place_figures.txt"
 
 star_props = pd.read_csv(props_file, index_col=0)
 star_props = star_props.drop_duplicates(subset='2MASS', keep='last')
@@ -29,14 +29,23 @@ with open(out_file, 'a') as f:
             fig_text = \
             "\\begin{figure}[hp]\n"+ \
             "    \\centering\n"+ \
-            "    \\includegraphics[width=\\textwidth]{figures/coadded_cubes/"+ob+"_coadd_grid.png}\n" + \
-            "    \\caption[Coadded cubes for the observation of 2MASS J"+tar+".]"+ \
-            "{Coadded cubes for the observation of 2MASS J"+tar+". The cubes have been derotated "+ \
-            "such that north is up and east is left. The square shape visible in the images "+ \
-            "is the shape of the detector, with part cut off due to the offset of the "+ \
-            "detector with respect to the IFU.}\n"+ \
-            "    \\label{fig:coadd_"+ob+"}\n"+ \
+            "    \\includegraphics[width=\\textwidth]{figures/contrast_curves/"+ob+"_contrast_map.png}\n" + \
+            "    \\caption"+ \
+            "{Contrast curve for the observation of 2MASS J"+tar+".}\n"+ \
+            "    \\label{fig:contrast_curve_"+ob+"}\n"+ \
             "\\end{figure}\n\n"
+            
+            # fig_text = \
+            # "\\begin{figure}[hp]\n"+ \
+            # "    \\centering\n"+ \
+            # "    \\includegraphics[width=\\textwidth]{figures/coadded_cubes/"+ob+"_coadd_grid.png}\n" + \
+            # "    \\caption[Coadded cubes for the observation of 2MASS J"+tar+".]"+ \
+            # "{Coadded cubes for the observation of 2MASS J"+tar+". The cubes have been derotated "+ \
+            # "such that north is up and east is left. The square shape visible in the images "+ \
+            # "is the shape of the detector, with part cut off due to the offset of the "+ \
+            # "detector with respect to the IFU.}\n"+ \
+            # "    \\label{fig:coadd_"+ob+"}\n"+ \
+            # "\\end{figure}\n\n"
     
         
             f.write(fig_text)

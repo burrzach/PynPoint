@@ -5,9 +5,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
-from math import ceil
+from matplotlib.lines import Line2D
 
 #settings
+plot_ind = False
+
 props_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/star_data.csv"
 curves_folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/contrast_curves/"
 tracks_folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/phillips2020/" + \
@@ -31,6 +33,8 @@ mass_ticks = [100, 50, 25, 12, 6] #what values of mass to put tick marks for
 star_props = pd.read_csv(props_file, index_col=0)
 star_props = star_props.drop_duplicates(subset='2MASS', keep='last')
 observations = np.array(star_props['obs'])
+
+plt.rcParams.update({'font.size': 15})
 
 #functions
 def apparent_to_absolute(mag, distance):
@@ -128,62 +132,59 @@ def mag_mass_relate(age_system, track_dir="doc/SPHERE_IRDIS_vega/"):
 fake_app_mag = star_props.loc[star_props['obs'] == psf_obs, 'J'].iloc[0]
 fake_err = star_props.loc[star_props['obs'] == psf_obs, 'J_err'].iloc[0]
 
-#find all contrast curves
-file_list = glob.glob(curves_folder + 'data/*contrast_map.txt') #!!! TODO: remove this and tie to observations list instead
+#make big image
+fig, axes = plt.subplots(1, 1, sharex=True)
+#fig.set_figheight(25)
+#fig.set_figwidth(11)
+
+axes.invert_yaxis()
+axes.set_xlim(xmin=0, xmax=0.8)
+axes.set_ylabel('Absolute magnitude [-]')
+
+# axes[1].set_ylim(ymax=100)
+# axes[1].set_yscale('log', base=2)
+# axes[1].set_xlabel('Separation [arcsec]')
+# axes[1].set_ylabel('Mass [M$_{Jup}$]')
 
 #loop through each image
-image_indices = range(0,len(file_list),obs_per_image)
-grid = 0
-for n in range(len(image_indices)):
-    grid += 1
-    if n == len(image_indices)-1:
-        subset = file_list[image_indices[n]:]
-    else:
-        subset = file_list[image_indices[n]:image_indices[n+1]]
-    
-    #create figure
-    nrows = ceil(len(subset) / ncols)
-    fig, axes = plt.subplots(nrows, ncols, constrained_layout=True, sharex=True, sharey=True)
-    
-    #loop through observations in this subset
-    for i, file in enumerate(subset):
-        #load data
+for obs in observations:
+    #load data
+    file = curves_folder + '/data/' + obs + '_contrast_map.txt'
+    try:
         contrast_map = np.genfromtxt(file)
-        
-        seps = int((contrast_map.shape[0] / 2))
-        sep_space = contrast_map[1:seps, 0]
-        angle_space = contrast_map[0, 1:]
-        
-        pre_map = contrast_map[1:seps, 1:]
-        post_map = contrast_map[seps+1:, 1:]
-        
-        #grab properties
-        obs = file[-29:-17]
-        while obs[0] != '2':
-            obs = obs[1:]
-        
-        dist = star_props.loc[star_props['obs'] == obs, 'dist'].iloc[0]
-        age = star_props.loc[star_props['obs'] == obs, 'age'].iloc[0]
-        
-        mag2mass, mass2mag = mag_mass_relate(age, tracks_folder)
-        
-        #calculations
-        pre_curve = np.mean(pre_map, 1) + fake_app_mag
-        pre_error = np.std(pre_map, 1) + fake_err
-        abs_pre_curve = apparent_to_absolute(pre_curve, dist)
-        
-        #mass_pre_curve = mag2mass(abs_pre_curve)
-        
-        post_curve = np.mean(post_map, 1) + fake_app_mag
-        post_error = np.std(post_map, 1) + fake_err
-        abs_post_curve = apparent_to_absolute(post_curve, dist)
-        
-        mass_post_curve = mag2mass(abs_post_curve)
-        sep_au = sep_space * dist
-        
-        #plot
-        ax1 = axes[i//ncols, i%ncols]
-        
+    except:
+        continue
+    
+    seps = int((contrast_map.shape[0] / 2))
+    sep_space = contrast_map[1:seps, 0]
+    angle_space = contrast_map[0, 1:]
+    
+    pre_map = contrast_map[1:seps, 1:]
+    post_map = contrast_map[seps+1:, 1:]
+    
+    #grab properties
+    dist = star_props.loc[star_props['obs'] == obs, 'dist'].iloc[0]
+    age = star_props.loc[star_props['obs'] == obs, 'age'].iloc[0]
+    
+    mag2mass, mass2mag = mag_mass_relate(age, tracks_folder)
+    
+    #calculations
+    pre_curve = np.mean(pre_map, 1) + fake_app_mag
+    pre_error = np.std(pre_map, 1) + fake_err
+    abs_pre_curve = apparent_to_absolute(pre_curve, dist)
+    
+    #mass_pre_curve = mag2mass(abs_pre_curve)
+    
+    post_curve = np.mean(post_map, 1) + fake_app_mag
+    post_error = np.std(post_map, 1) + fake_err
+    abs_post_curve = apparent_to_absolute(post_curve, dist)
+    
+    mass_post_curve = mag2mass(abs_post_curve)
+    sep_au = sep_space * dist #!!! can use to plot on top of detected planets
+    
+    #plot in own image
+    if plot_ind:
+        fig, ax1 = plt.subplots(1, 1, num=obs+'_contrast_curve', clear=True)    
         ax1.errorbar(sep_space, abs_pre_curve, yerr=pre_error, marker='o', 
                      capsize=3, label='Before SDI')
         ax1.errorbar(sep_space, abs_post_curve, yerr=post_error, marker='o', 
@@ -200,9 +201,12 @@ for n in range(len(image_indices)):
         ax2.set_ylabel('Mass [$M_{Jup}$]')
         ax2.set_yticks(mass_ticks)
         
-        
-        #check for companions
-        if obs in companion_list.keys():
+        plt.savefig(curves_folder + '/figures/' + obs + '_contrast_map.png', bbox_inches='tight')
+        plt.close()
+    
+    #check for companions
+    if obs in companion_list.keys():
+        if plot_ind:
             n_companions = companion_list[obs]
             for j in range(1, n_companions+1):
                 comp_file = companions_folder + obs + f"_companion{j}_data.txt"
@@ -227,3 +231,11 @@ for n in range(len(image_indices)):
                 # ax1.errorbar(sep, mag, xerr=sep_err, yerr=mag_err, marker='*',
                 #              capsize=3, label=label)
                 ax1.scatter(sep, mag, marker='*', label=label)
+    else:
+        #plot in big image
+        # plt.errorbar(sep_space, abs_pre_curve, yerr=pre_error, marker='o', 
+        #          capsize=0, color='blue', alpha=0.8, markersize=10)
+        axes.errorbar(sep_space, abs_post_curve, yerr=post_error, marker='o', 
+                         alpha=0.8, markersize=10, color='orange')
+        # axes[0].errorbar(sep_space, mass_post_curve, marker='o',
+        #                  alpha=0.8, markersize=10, color='orange')
