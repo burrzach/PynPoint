@@ -175,7 +175,7 @@ for ang in angles:
 
 #coadd image
 module = RemoveFramesModule(name_in='slice_science', 
-                            image_in_tag=image_out, 
+                            image_in_tag=image_in, 
                             selected_out_tag='sliced', 
                             removed_out_tag='trash', 
                             frames=[0,1,37,38])
