@@ -283,7 +283,7 @@ for file in comp_list:
     
     science_image = image_out
     image_out = image_out[:-1] + str(count)
-
+    
 
 ## Setup variables for loop ##
 sep_space = np.arange(inner_radius, outer_radius, sep_step)
@@ -310,28 +310,34 @@ for i, sep in enumerate(sep_space):
         
         #optimize to find brightness at threshold
         #before subtraction
-        res = root_scalar(PlanetInjection, 
-                          args=(pipeline, science_image, sep, angle, pos_pix, threshold, False),
-                          bracket=(0.,15.),
-                          x0=initial_guess_pre,
-                          rtol=tolerance,
-                          maxiter=iterations)
-        
-        print(res)
-        contrast_map_pre[i,j] = res.root #save result
-        initial_guess_pre = contrast_map_pre[i,j] #initial guess for next position
+        try:
+            res = root_scalar(PlanetInjection, 
+                              args=(pipeline, science_image, sep, angle, pos_pix, threshold, False),
+                              bracket=(0.,15.),
+                              x0=initial_guess_pre,
+                              rtol=tolerance,
+                              maxiter=iterations)
+            
+            print(res)
+            contrast_map_pre[i,j] = res.root #save result
+            initial_guess_pre = contrast_map_pre[i,j] #initial guess for next position
+        except:
+            print(f"Error at {sep} arcsec, {angle} deg; without SDI.")
         
         #after subtraction
-        res = root_scalar(PlanetInjection, 
-                          args=(pipeline, science_image, sep, angle, pos_pix, threshold, True),
-                          bracket=(initial_guess_pre - 4., 20.),
-                          x0=initial_guess_post,
-                          rtol=tolerance,
-                          maxiter=iterations)
-        
-        print(res)
-        contrast_map_post[i,j] = res.root #save result
-        initial_guess_post = contrast_map_post[i,j] #initial guess for next position
+        try:
+            res = root_scalar(PlanetInjection, 
+                              args=(pipeline, science_image, sep, angle, pos_pix, threshold, True),
+                              bracket=(initial_guess_pre - 4., 20.),
+                              x0=initial_guess_post,
+                              rtol=tolerance,
+                              maxiter=iterations)
+            
+            print(res)
+            contrast_map_post[i,j] = res.root #save result
+            initial_guess_post = contrast_map_post[i,j] #initial guess for next position
+        except:
+            print(f"Error at {sep} arcsec, {angle} deg; with SDI.")
 
 #save data
 seps = np.full((len(sep_space)+1, 1), np.nan)
