@@ -1,17 +1,18 @@
 ## Imports ##
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import pandas as pd
 
 
 ## Settings ##
-fit_model = True     #fit host spectrum to match model
-plot_models = False   #plot range of model spectra to compare to companion
-plot_host = True     #plot host star spectrum
-fit_companion = False #scale models to value of companion when plotting
-find_best_fit = True #find model which fits closest to companion spectrum
-calc_distance = False #calculate true distance based off best fit temperature
-binary_scaling = True#halve brightness (for) binary companions
+fit_model = True      #fit host spectrum to match model
+plot_models = False    #plot range of model spectra to compare to companion
+plot_host = True      #plot host star spectrum
+fit_companion = False  #scale models to value of companion when plotting
+find_best_fit = True  #find model which fits closest to companion spectrum
+calc_distance = False  #calculate true distance based off best fit temperature
+binary_scaling = True #halve brightness (for binary companions)
 
 temp_range = range(60, 3, -1) #range of temperatures to plot models
 #temp_range = []
@@ -195,6 +196,9 @@ for obs in obs_list:
     # else:
     #     binary_scaling = False
     
+    if obs == "2023-06-15-1":
+        error *= 0.25
+    
     if binary_scaling:
         comp *= 0.5 #divide by 2 because companion is a binary
     
@@ -359,13 +363,16 @@ for obs in obs_list:
         model_goodness = np.empty((len(temp_range)))
         for temp in temp_range:
             model_spectra = model_dict[temp] * ratio
-            plt.plot(wl, model_spectra, alpha=0.6) #label='T_eff='+str(temp*100)
+            plt.plot(wl, model_spectra, alpha=0.6, color='black') #label='T_eff='+str(temp*100)
             plt.text(wl[-2], model_spectra[-2]*1.05, f'{temp*100}K')
             
     
     #plot settings
     plt.figure('spectra'+obs)
-    plt.legend(loc='upper right')
+    handles, labels = plt.gca().get_legend_handles_labels()
+    handles.append(Line2D([],[],color='black',alpha=0.6))
+    labels.append('model spectra')
+    plt.legend(handles, labels)
     plt.xlabel('$\lambda$ $[\mu m]$')
     plt.ylabel('Flux [erg/$cm^2$/s/A]')
     plt.title(obs)
