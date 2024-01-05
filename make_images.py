@@ -21,12 +21,12 @@ pipeline = Pypeline(working_place_in=folder,
 star_props = pd.read_csv(props_file, index_col=0)
 star_props = star_props.drop_duplicates(subset='2MASS', keep='last')
 observations = np.array(star_props['obs'])
-observations = np.array(["2023-05-27",    #just systems with candidates
-                         "2023-05-30-2", 
-                         #"2023-06-15-1",
-                         "2023-07-26-1",
-                         "2023-08-07-2"
-                         ])
+# observations = np.array(["2023-05-27",    #just systems with candidates
+#                          "2023-05-30-2", 
+#                          "2023-06-15-1",
+#                          "2023-07-26-1",
+#                          "2023-08-07-2"
+#                          ])
 
 companion_list = {"2023-05-27":  2, #how many companions are in each system
                   "2023-05-30-2":1, 
@@ -173,19 +173,19 @@ for ob in observations:
         ag[2].set_xlabel('RA [arcsec]')
         ag[3].set_xlabel('RA [arcsec]')
     
-    #manager = plt.get_current_fig_manager()
-    #manager.window.showMaximized()
-    #plt.show()
-    #plt.savefig(output_folder + f'{ob}_coadd_grid.png')
-    plt.close()
+    # manager = plt.get_current_fig_manager()
+    # manager.window.showMaximized()
+    # plt.show()
+    # plt.savefig(output_folder + f'{ob}_coadd_grid.png')
+    # plt.close()
     
-    plt.figure()
-    plt.imshow(raw_zoom, origin='lower', extent=extent,
-               norm=colors.Normalize(vmin=np.min(raw[0]), vmax=np.max(raw[0])))
-    for circle in circles:
-        plt.gca().add_patch(circle)
-    plt.ylabel('Dec [arcsec]')
-    plt.xlabel('RA [arcsec]')
+    # plt.figure()
+    # plt.imshow(raw_zoom, origin='lower', extent=extent,
+    #            norm=colors.Normalize(vmin=np.min(raw[0]), vmax=np.max(raw[0])))
+    # for circle in circles:
+    #     plt.gca().add_patch(circle)
+    # plt.ylabel('Dec [arcsec]')
+    # plt.xlabel('RA [arcsec]')
     
-    plt.savefig(output_folder + f'aperture_{ob}.png')
-    plt.close()
+    # plt.savefig(output_folder + f'aperture_{ob}.png')
+    # plt.close()
