@@ -209,6 +209,7 @@ module = ReshapeModule(name_in='shape_down_science_pre',
                        image_out_tag='science3D_pre',
                        shape=(39,290,290))
 pipeline.add_module(module)
+pipeline.run_module('shape_down_science_pre')
 
 module = RemoveFramesModule(name_in='slice_science_pre', 
                             image_in_tag='science3D_pre', 
@@ -216,12 +217,14 @@ module = RemoveFramesModule(name_in='slice_science_pre',
                             removed_out_tag='trash', 
                             frames=[0])
 pipeline.add_module(module)
+pipeline.run_module('slice_science_pre')
 
 module = ReshapeModule(name_in='shape_up_science_pre',
                        image_in_tag='slice_one_removed',
                        image_out_tag='science_derot',
                        shape=(38,1,290,290))
 pipeline.add_module(module)
+pipeline.run_module('shape_up_science_pre')
 
 
 ## Load PSF ##
