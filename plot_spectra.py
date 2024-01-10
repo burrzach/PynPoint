@@ -7,23 +7,24 @@ import pandas as pd
 
 ## Settings ##
 fit_model = True      #fit host spectrum to match model
-plot_models = False    #plot range of model spectra to compare to companion
+plot_models = True    #plot range of model spectra to compare to companion
 plot_host = True      #plot host star spectrum
 fit_companion = False  #scale models to value of companion when plotting
-find_best_fit = True  #find model which fits closest to companion spectrum
-calc_distance = False  #calculate true distance based off best fit temperature
+find_best_fit = False  #find model which fits closest to companion spectrum
+calc_distance = True  #calculate true distance based off best fit temperature
 binary_scaling = True #halve brightness (for binary companions)
 
-temp_range = range(60, 3, -1) #range of temperatures to plot models
+temp_range = range(45, 19, -5) #range of temperatures to plot models
+#temp_range = range(60, 3, -1) #all models for best fitting
 #temp_range = []
 
 plt.rcParams.update({'font.size': 15})
 
 obs_list = [#"2023-05-27",    #which observations to plot
             #"2023-05-30-2", 
-            "2023-06-15-1",
+            #"2023-06-15-1",
             #"2023-07-26-1",
-            #"2023-08-07-2"
+            "2023-08-07-2"
             ]
 companion_list = {"2023-05-27":  2, #how many companions are in each system
                   "2023-05-30-2":1,
@@ -36,9 +37,9 @@ host_temp = {"2023-05-27":  47, #host star temperature/model to compare
              "2023-07-26-1":41,
              "2023-08-07-2":45}
 comp_fit_temp = {"2023-05-27":  [42, 42], #best fit model for each companion
-                 "2023-05-30-2":[60], 
+                 "2023-05-30-2":[60],
                  "2023-06-15-1":[34],
-                 "2023-07-26-1":[49],
+                 "2023-07-26-1":[56],
                  "2023-08-07-2":[34, 34]}
 
 folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"
@@ -96,7 +97,7 @@ def RMSE(spectra, model, exclude=None):
     
     scaling = np.mean(spectra[1:-1]) / np.mean(model[1:-1])
     
-    return np.sqrt(np.mean((spectra[1:-1] - model[1:-1]*scaling)**2))
+    return np.sqrt(np.mean((spectra[1:-1] - model[1:-1]*scaling)**2)) / np.mean(spectra[1:-1])
 
 def load_model(temp, wl):
     
@@ -197,7 +198,7 @@ for obs in obs_list:
     #     binary_scaling = False
     
     if obs == "2023-06-15-1":
-        error *= 0.25
+        error *= 0.5
     
     if binary_scaling:
         comp *= 0.5 #divide by 2 because companion is a binary
@@ -211,6 +212,7 @@ for obs in obs_list:
         plt.figure('snr'+obs)
         plt.plot(wl, snr, marker='o', label='companion 1', color='orange')
     else:
+        #plt.errorbar(wl, comp, yerr=error, marker='s', label='companion (combined brightness)', color='orange', alpha=0.5) #!!!
         plt.errorbar(wl, comp, yerr=error, marker='o', label='companion', color='orange')
         plt.figure('snr'+obs)
         plt.plot(wl, snr, marker='o', label='companion', color='orange')
@@ -237,14 +239,14 @@ for obs in obs_list:
         fig, (ax1, ax2) = plt.subplots(1, 2)
         if n_companions > 1:
             ax1.errorbar(wl, comp, yerr=error, marker='o', label='companion 1', color='orange')
-            label=f'companion 1 best fit\n(T_eff={best_fit_temp*100}, RMSE={best_fit_goodness})'
-            ax1.plot(wl, model_spectra_scaled, marker='^', label=label, color='orange', alpha=0.6)
+            label=f'companion 1 best fit\n(T_eff={best_fit_temp*100}, NRMSE={best_fit_goodness})'
+            ax1.plot(wl, model_spectra_scaled, label=label, color='red', alpha=0.6)
             
             ax2.plot(np.array(temp_range)*100, model_goodness, label='companion 1', color='orange')
         else:
             ax1.errorbar(wl, comp, yerr=error, marker='o', label='companion', color='orange')
-            label=f'companion best fit\n(T_eff={best_fit_temp*100}, RMSE={best_fit_goodness})'
-            ax1.plot(wl, model_spectra_scaled, marker='^', label=label, color='orange', alpha=0.6)
+            label=f'companion best fit\n(T_eff={best_fit_temp*100}, NRMSE={best_fit_goodness})'
+            ax1.plot(wl, model_spectra_scaled, label=label, color='red', alpha=0.6)
             
             ax2.plot(np.array(temp_range)*100, model_goodness, label='companion', color='orange')
             
@@ -273,7 +275,7 @@ for obs in obs_list:
         #load stellar model
         temp = int(np.round(np.mean(temp_range),0))
         model_spectra = model_dict[temp]
-        #model_spectra = model_dict[temp_range[0]] #!!!
+        model_spectra = model_dict[temp_range[0]] #!!!
         
         #calculate ratio
         ratio = np.mean(comp[1:-1]) / np.mean(model_spectra[1:-1])
@@ -328,8 +330,8 @@ for obs in obs_list:
             model_spectra_scaled = model_spectra * scaling
             
             ax1.errorbar(wl, comp, yerr=error, marker='o', label=f'companion {i}', color='green')
-            label=f'companion {i} best fit\n(T_eff={best_fit_temp*100}, RMSE={best_fit_goodness})'
-            ax1.plot(wl, model_spectra_scaled, marker='^', label=label, color='green', alpha=0.6)
+            label=f'companion {i} best fit\n(T_eff={best_fit_temp*100}, NRMSE={best_fit_goodness})'
+            ax1.plot(wl, model_spectra_scaled, label=label, color='blue', alpha=0.6)
             
             ax2.plot(np.array(temp_range)*100, model_goodness, label=f'companion {i}', color='green')
             
@@ -363,15 +365,22 @@ for obs in obs_list:
         model_goodness = np.empty((len(temp_range)))
         for temp in temp_range:
             model_spectra = model_dict[temp] * ratio
-            plt.plot(wl, model_spectra, alpha=0.6, color='black') #label='T_eff='+str(temp*100)
-            plt.text(wl[-2], model_spectra[-2]*1.05, f'{temp*100}K')
+            if temp == np.nan:
+                plt.plot(wl, model_spectra, alpha=0.6, color='red', label='Best fit for companion 1 (T_eff='+str(temp*100)+')')
+                plt.text(wl[-2], model_spectra[-2]*0.95, f'{temp*100}K') #!!!
+            elif temp == np.inf:
+                plt.plot(wl, model_spectra, alpha=0.6, color='blue', label='Best fit for companion 2 (T_eff='+str(temp*100)+')')
+                plt.text(wl[-2], model_spectra[-2]*0.95, f'{temp*100}K') #!!!
+            else:
+                plt.plot(wl, model_spectra, alpha=0.6, color='black') #label='T_eff='+str(temp*100)
+                plt.text(wl[-2], model_spectra[-2]*0.95, f'{temp*100}K') #!!!
             
     
     #plot settings
     plt.figure('spectra'+obs)
     handles, labels = plt.gca().get_legend_handles_labels()
     handles.append(Line2D([],[],color='black',alpha=0.6))
-    labels.append('model spectra')
+    labels.append('Other model spectra')
     plt.legend(handles, labels)
     plt.xlabel('$\lambda$ $[\mu m]$')
     plt.ylabel('Flux [erg/$cm^2$/s/A]')
