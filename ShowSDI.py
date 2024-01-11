@@ -13,6 +13,7 @@ from pynpoint import Pypeline, FitsReadingModule, DerotateAndStackModule,\
 from pynpoint.util.sdi import sdi_scaling, scaling_factors
 from pynpoint.core.processing import ProcessingModule
 import configparser
+from scipy.interpolate import interp2d
 
 
 
@@ -20,7 +21,7 @@ folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/2023-06-15-2/"
 angle = 0.
 radius = 0.035
 scale = 1.73 / 290
-mag = 7.5
+mag = 7.
 sep1 = 0.35
 sep2 = 0.45
 
@@ -190,28 +191,48 @@ pipeline.run_module('fake2')
 raw = pipeline.get_data('injected2')
 raw = raw.reshape((39,290,290))
 
-plt.imshow(raw[20])
+#plt.imshow(raw[20])
 
 
 #Rescale image
 wl = pipeline.get_attribute(data_tag='injected2', 
                             attr_name='WAVELENGTH',
                             static=False)
-scales = scaling_factors(wl)
+x_coords = np.linspace(min(wl),max(wl),39)
+scales = scaling_factors(x_coords)
 
 scaled = sdi_scaling(raw, scales)
 
 
-
-#plot slice with objects
+#slice
 x = int(290/2)
 
 lam_y = raw[:,:,x]
 lam_y_scaled = scaled[:,:,x]
 
-lam_y[:,x-30:x+30] = np.zeros((39,60))
-lam_y_scaled[:,x-30:x+30] = np.zeros((39,60))
+#lam_y[:,x-25:x+25] = np.zeros((39,50))
+#lam_y_scaled[:,x-25:x+25] = np.zeros((39,50))
 
-fig, (ax1, ax2) = plt.subplots(1,2, sharey=True, figsize=(11,20))
-ax1.imshow(lam_y.transpose())
-ax2.imshow(lam_y_scaled.transpose())
+
+#interpolate
+y = np.linspace(-1.73/2, 1.73/2, 290)
+
+f = interp2d(y, wl, lam_y)
+Z = f(y, x_coords)
+
+f_scaled = interp2d(y, wl, lam_y_scaled)
+Z_scaled = f_scaled(y, x_coords)
+
+#plot
+fig, (ax1, ax2) = plt.subplots(2,1, sharex=True, constrained_layout=True)
+ax1.imshow(Z, extent=[min(y),max(y),min(wl),max(wl)], origin="lower", aspect=1/700,
+           norm=colors.Normalize(vmin=None, vmax=np.max(Z)*0.5, clip=True))
+ax2.imshow(Z_scaled, extent=[min(y),max(y),min(wl),max(wl)], origin="lower", aspect=1/700,
+           norm=colors.Normalize(vmin=None, vmax=np.max(Z_scaled)*0.5, clip=True))
+#plt.subplots_adjust(wspace=0)
+
+ax1.set_title('Before scaling')
+ax2.set_title('After scaling')
+ax1.set_ylabel('$\lambda$ $[\mu m]$')
+ax2.set_ylabel('$\lambda$ $[\mu m]$')
+ax2.set_xlabel('Separation [arcsec]')
