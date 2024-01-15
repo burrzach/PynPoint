@@ -98,7 +98,7 @@ pipeline = Pypeline(working_place_in=folder,
 #read in science data
 module = FitsReadingModule(name_in='read',
                            image_tag='science', #!!!
-                           filenames=[folder+'residual.fits'],
+                           filenames=[folder+'residuals.fits'],
                            input_dir=None,
                            ifs_data=True)
 pipeline.add_module(module)
