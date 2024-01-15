@@ -224,7 +224,7 @@ f_scaled = interp2d(y, wl, lam_y_scaled)
 Z_scaled = f_scaled(y, x_coords)
 
 #plot
-fig, (ax1, ax2) = plt.subplots(2,1, sharex=True, constrained_layout=True)
+fig, (ax1, ax2) = plt.subplots(2,1, sharex=False, constrained_layout=True)
 ax1.imshow(Z, extent=[min(y),max(y),min(wl),max(wl)], origin="lower", aspect=1/700,
            norm=colors.Normalize(vmin=None, vmax=np.max(Z)*0.5, clip=True))
 ax2.imshow(Z_scaled, extent=[min(y),max(y),min(wl),max(wl)], origin="lower", aspect=1/700,
@@ -233,6 +233,7 @@ ax2.imshow(Z_scaled, extent=[min(y),max(y),min(wl),max(wl)], origin="lower", asp
 
 ax1.set_title('Before scaling')
 ax2.set_title('After scaling')
-ax1.set_ylabel('$\lambda$ $[\mu m]$')
-ax2.set_ylabel('$\lambda$ $[\mu m]$')
-ax2.set_xlabel('Separation [arcsec]')
+ax1.set_ylabel(r'$\lambda$ $[\mu m]$')
+ax2.set_ylabel(r'$\lambda$ $[\mu m]$')
+ax1.set_xlabel(r'Separation [arcsec]')
+ax2.set_xlabel(r'$\frac{\lambda}{D}$')

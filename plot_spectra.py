@@ -7,24 +7,24 @@ import pandas as pd
 
 ## Settings ##
 fit_model = True      #fit host spectrum to match model
-plot_models = True    #plot range of model spectra to compare to companion
-plot_host = True      #plot host star spectrum
+plot_models = False    #plot range of model spectra to compare to companion
+plot_host = False      #plot host star spectrum
 fit_companion = False  #scale models to value of companion when plotting
 find_best_fit = False  #find model which fits closest to companion spectrum
-calc_distance = True  #calculate true distance based off best fit temperature
-binary_scaling = True #halve brightness (for binary companions)
+calc_distance = False  #calculate true distance based off best fit temperature
+binary_scaling = False #halve brightness (for binary companions)
 
-temp_range = range(45, 19, -5) #range of temperatures to plot models
+#temp_range = range(45, 19, -5) #range of temperatures to plot models
 #temp_range = range(60, 3, -1) #all models for best fitting
-#temp_range = []
+temp_range = []
 
 plt.rcParams.update({'font.size': 15})
 
-obs_list = [#"2023-05-27",    #which observations to plot
+obs_list = ["2023-05-27",    #which observations to plot
             #"2023-05-30-2", 
             #"2023-06-15-1",
             #"2023-07-26-1",
-            "2023-08-07-2"
+            #"2023-08-07-2"
             ]
 companion_list = {"2023-05-27":  2, #how many companions are in each system
                   "2023-05-30-2":1,
@@ -335,10 +335,8 @@ for obs in obs_list:
             
             ax2.plot(np.array(temp_range)*100, model_goodness, label=f'companion {i}', color='green')
             
-            comp_comparison1 = RMSE(comp1, comp)
-            print(f'Companion 2 vs 1 RMSE: {comp_comparison1}')
-            comp_comparison2 = RMSE(comp, comp1)
-            print(f'Companion 1 vs 2 RMSE: {comp_comparison2}')
+            comp_comparison = RMSE(comp1, comp)
+            print(f'Companion {i} vs 1 NRMSE: {comp_comparison}')
             
         #calculate distance to companion
         if calc_distance:

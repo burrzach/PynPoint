@@ -14,15 +14,21 @@ from pynpoint.util.image import polar_to_cartesian
 from pynpoint.core.processing import ProcessingModule
 #import configparser
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from scipy.interpolate import interp2d
 
 scale = 1.73 / 290  #arcsec/pixel
 radius = 0.035      #arcsec
 angles = [0., 120., 240.]
 sep_list = [0.2, 0.4, 0.6]
 
-folder = '/data/zburr/yses_ifu/2nd_epoch/processed/2023-06-15-2/products/'
-curve = folder+'contrast_map.txt'
+folder = '/data/zburr/yses_ifu/2nd_epoch/processed/2023-06-15-2/products/'  #linux
+folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/2023-06-15-2/" #windows
+curve = folder+'contrast_map.txt' #linux
+curve = folder+'2023-06-15-2_contrast_map.txt'
 psf_folder = folder
+
+plt.rcParams.update({'font.size': 15})
 
 #Module to reshape arrays (to drop/add extra dimension)
 class ReshapeModule(ProcessingModule):
@@ -167,13 +173,14 @@ post_map = contrast_map[seps+1:, 1:]
 image_in = 'science'
 image_out = 'add_1'
 count = 1
-for ang in angles:
+for i, ang in enumerate(angles):
     for sep in sep_list:
         count += 1
         
-        i_ang = np.argmax(angle_space == ang)
-        i_sep = np.argmax(sep_space == sep)
+        i_ang = np.argmin(abs(angle_space - ang))
+        i_sep = np.argmin(abs(sep_space - sep))
         mag = pre_map[i_sep, i_ang]
+        print(mag)
         
         module = FakePlanetModule(name_in='fake', 
                                   image_in_tag=image_in, 
@@ -229,3 +236,55 @@ plt.xlabel('RA [arcsec]')
 plt.ylabel('Dec [arcsec]')
 
 plt.savefig(folder+'ContrastCurveInjection.png', bbox_inches='tight')
+
+
+
+#%%
+#scatter plot
+plt.figure()
+#colors = ['blue', 'orange', 'green', 'red', 'purple', 'brown']
+for i in range(len(angle_space)):
+    plt.scatter(sep_space+np.random.normal(scale=0.002), pre_map[:,i], 
+                label=f'{np.round(angle_space[i])} degrees')
+
+plt.xlabel('Separation [arcsec]')
+plt.ylabel(r'$\Delta$ mag')
+
+# legend_elements = [Line2D([0], [0], color='w', markerfacecolor='blue', 
+#                           marker='^', label='0 deg'),
+#                    Line2D([0], [0], color='w', markerfacecolor='orange', 
+#                           marker='s', label='120 deg'),
+#                    Line2D([0], [0], color='w', markerfacecolor='green', 
+#                           marker='o', label='240 deg'),
+#                    ]
+plt.legend()
+plt.gca().invert_yaxis()
+
+
+#%%
+#heat map
+x = []
+y = []
+for ang in angle_space:
+    for sep in sep_space:
+        sep_pix = sep / scale
+        y_pix, x_pix = polar_to_cartesian(raw, sep_pix, ang)
+        y.append(y_pix*scale)
+        x.append(x_pix*scale)
+
+z_pre = pre_map.flatten('F')
+z_post = post_map.flatten('F')
+
+f_pre = interp2d(x, y, pre_map)
+f_post = interp2d(x, y, z_post)
+
+y_coords = np.linspace(-1.73/2, 1.73/2, 290)
+
+pre_map_interp = f_pre(y_coords, y_coords)
+post_map_interp = f_post(y_coords, y_coords)
+
+plt.figure()
+plt.imshow(pre_map_interp, extent=[-1.73/2, 1.73/2, -1.73/2, 1.73/2])
+
+plt.figure()
+plt.imshow(post_map_interp, extent=[-1.73/2, 1.73/2, -1.73/2, 1.73/2])

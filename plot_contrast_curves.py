@@ -9,12 +9,14 @@ from matplotlib.lines import Line2D
 
 #settings
 plot_ind = False
+plot_planets = True
 
 props_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/star_data.csv"
 curves_folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/contrast_curves/"
 tracks_folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/phillips2020/" + \
     "evolutionary_tracks/ATMO_2020/ATMO_CEQ/SPHERE_IRDIS/"
 companions_folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/companions/"
+planets_file = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/all_exoplanets_data.csv"
 
 psf_obs = '2023-06-15-2'
 M_SUN_TO_M_JUP = 1047.34
@@ -33,8 +35,20 @@ mass_ticks = [100, 50, 25, 12, 6] #what values of mass to put tick marks for
 star_props = pd.read_csv(props_file, index_col=0)
 star_props = star_props.drop_duplicates(subset='2MASS', keep='last')
 observations = np.array(star_props['obs'])
+#observations = np.array(['2023-07-08-2', '2023-07-22-1', '2023-07-22-3'])
 
 plt.rcParams.update({'font.size': 15})
+
+planet_markers = {'Imaging':'o',
+                  'Microlensing':'s',
+                  'Radial Velocity':'^',
+                  'Transit':'p',
+                  'Solar System Planet':'o'}
+planet_colors = {'Imaging':'blue',
+                 'Microlensing':'grey',
+                 'Radial Velocity':'orange',
+                 'Transit':'purple',
+                 'Solar System Planet':'yellow'}
 
 #functions
 def apparent_to_absolute(mag, distance):
@@ -128,24 +142,68 @@ def mag_mass_relate(age_system, track_dir="doc/SPHERE_IRDIS_vega/"):
                         fill_value='extrapolate')
     return mag2mass, mass2mag
 
+#%%
 #load star properties
 fake_app_mag = star_props.loc[star_props['obs'] == psf_obs, 'J'].iloc[0]
 fake_err = star_props.loc[star_props['obs'] == psf_obs, 'J_err'].iloc[0]
 
 #make big image
-fig, axes = plt.subplots(1, 1, sharex=True)
-#fig.set_figheight(25)
-#fig.set_figwidth(11)
+fig, axes = plt.subplots(2, 1, sharex=True, num='all_curves', clear=True)
+fig.set_figheight(25)
+fig.set_figwidth(11)
 
-axes.invert_yaxis()
-axes.set_xlim(xmin=0, xmax=0.8)
-axes.set_ylabel('Absolute magnitude [-]')
+axes[0].invert_yaxis()
+axes[0].set_xlim(xmin=0, xmax=0.8)
+axes[0].set_ylabel('Absolute magnitude [-]')
 
-# axes[1].set_ylim(ymax=100)
-# axes[1].set_yscale('log', base=2)
-# axes[1].set_xlabel('Separation [arcsec]')
-# axes[1].set_ylabel('Mass [M$_{Jup}$]')
+#axes[1].set_ylim(ymax=100)
+axes[1].set_yscale('log')
+axes[1].set_xlabel('Separation [arcsec]')
+axes[1].set_ylabel('Mass [M$_{Jup}$]')
 
+#make big image with planets
+#0 id, 1 planet name, 2 hostname, 3 method, 4 a, 5 mass
+planet_data = np.genfromtxt(planets_file, delimiter=',', missing_values='',
+                            filling_values=np.nan, dtype=str)
+plt.figure(num='all_planets', clear=True)
+plt.yscale('log')
+plt.xscale('log')
+plt.ylabel('Mass [M$_{Jup}$]')
+plt.xlabel('Semi-Major Axis [AU]')
+
+legend_elements = [Line2D([0],[0], color='w', label='Method of Discovery')]
+for method in planet_markers.keys():
+    legend_elements.append(Line2D([0], [0], color='w', 
+                                  markerfacecolor=planet_colors[method],
+                                  marker=planet_markers[method], markersize=15,
+                                  label=method, markeredgecolor='black'))
+plt.legend(handles=legend_elements, loc='lower right')
+    
+for planet in planet_data[:-8]:
+    method = planet[3]
+    pl_a = float(planet[4])
+    pl_mass = float(planet[5])
+    if method in planet_markers.keys():
+        plt.scatter(pl_a, pl_mass, marker=planet_markers[method], 
+                    color=planet_colors[method], edgecolor='black', s=75)
+for planet in planet_data[-8:]:
+    pl_a = float(planet[4])
+    pl_mass = float(planet[5])
+    plt.scatter(pl_a, pl_mass, marker=planet_markers['Solar System Planet'], 
+                color=planet_colors['Solar System Planet'], s=100, edgecolor='black')
+    if planet[1] == 'Venus' or planet[1] == 'Uranus':
+        plt.annotate(planet[1], (pl_a, pl_mass), textcoords='offset fontsize',
+                     xytext=(0,-1.1))
+    else:
+        plt.annotate(planet[1], (pl_a, pl_mass))
+            
+max_mass = plt.gca().get_ylim()[1]
+alpha = 0.05 #1 / (len(observations) - len(companion_list))
+
+plt.annotate('Region the YSES IFS observations\nare sensitive to', (40,17),
+              xytext=(300,0.5), arrowprops=dict(lw=2, color='black'))
+
+#%%
 #loop through each image
 for obs in observations:
     #load data
@@ -169,18 +227,18 @@ for obs in observations:
     mag2mass, mass2mag = mag_mass_relate(age, tracks_folder)
     
     #calculations
-    pre_curve = np.mean(pre_map, 1) + fake_app_mag
-    pre_error = np.std(pre_map, 1) + fake_err
+    pre_curve = np.nanmean(pre_map, 1) + fake_app_mag
+    pre_error = np.nanstd(pre_map, 1) + fake_err
     abs_pre_curve = apparent_to_absolute(pre_curve, dist)
     
     #mass_pre_curve = mag2mass(abs_pre_curve)
     
-    post_curve = np.mean(post_map, 1) + fake_app_mag
-    post_error = np.std(post_map, 1) + fake_err
+    post_curve = np.nanmean(post_map, 1) + fake_app_mag
+    post_error = np.nanstd(post_map, 1) + fake_err
     abs_post_curve = apparent_to_absolute(post_curve, dist)
     
     mass_post_curve = mag2mass(abs_post_curve)
-    sep_au = sep_space * dist #!!! can use to plot on top of detected planets
+    sep_au = sep_space * dist
     
     #plot in own image
     if plot_ind:
@@ -235,7 +293,17 @@ for obs in observations:
         #plot in big image
         # plt.errorbar(sep_space, abs_pre_curve, yerr=pre_error, marker='o', 
         #          capsize=0, color='blue', alpha=0.8, markersize=10)
-        axes.errorbar(sep_space, abs_post_curve, yerr=post_error, marker='o', 
-                         alpha=0.8, markersize=10, color='orange')
-        # axes[0].errorbar(sep_space, mass_post_curve, marker='o',
-        #                  alpha=0.8, markersize=10, color='orange')
+        plt.figure(num='all_curves')
+        axes[0].plot(sep_space, abs_post_curve, marker='o', 
+                     alpha=0.8, markersize=10, color='orange')
+        axes[1].plot(sep_space, mass_post_curve, marker='o',
+                     alpha=0.8, markersize=10, color='orange')
+        
+        if plot_planets:
+            plt.figure(num='all_planets')
+            plt.fill_between(sep_au, mass_post_curve, max_mass, facecolor='red',
+                             alpha=alpha, where=mass_post_curve<max_mass)
+
+#plt.gca().set_ylim(ymin=0.1, ymax=max_mass)
+plt.gca().set_ylim(ymax=max_mass)
+#plt.gca().set_xlim(xmin=1)
