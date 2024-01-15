@@ -97,26 +97,26 @@ pipeline = Pypeline(working_place_in=folder,
 ## Load in images ##
 #read in science data
 module = FitsReadingModule(name_in='read',
-                           image_tag='science', #!!!
+                           image_tag='science_reshape',
                            filenames=[folder+'residuals.fits'],
                            input_dir=None,
                            ifs_data=True)
 pipeline.add_module(module)
 pipeline.run_module('read')
 
-module = ReshapeModule(name_in='reshape_science',  #for residuals, because they are 1x39x290x290
-                        image_in_tag='science',  #!!!
-                        image_out_tag='science_reshape', 
-                        shape=(39,1,290,290))
-pipeline.add_module(module)
-pipeline.run_module('reshape_science')
+# module = ReshapeModule(name_in='reshape_science',  #for residuals, because they are 1x39x290x290
+#                         image_in_tag='science',  
+#                         image_out_tag='science_reshape', 
+#                         shape=(39,1,290,290))
+# pipeline.add_module(module)
+# pipeline.run_module('reshape_science')
 
 module = ParangReadingModule(name_in='parang',
                               data_tag='science_reshape',
                               file_name=folder+'science_derot.fits')
 pipeline.add_module(module)
 pipeline.run_module('parang')
-pipeline.set_attribute('science_reshape', 'PARANG', [0.], static=False) #for when using (derotated) resids #!!!
+# pipeline.set_attribute('science_reshape', 'PARANG', [0.], static=False) #for when using (derotated) resids
 
 module = WavelengthReadingModule(name_in='wavelength',
                                  data_tag='science_reshape',
@@ -400,7 +400,7 @@ for i, guess in enumerate(pos_guess):
             ...
     
     #save data
-    np.savetxt(folder+obs+'_companion'+str(i+1)+'_resid_data.txt', data,
+    np.savetxt(folder+obs+'_companion'+str(i+1)+'_data.txt', data,
                header='wl, star, avg_noise_star, std_noise_star, comp, '+\
                       'avg_noise_comp, std_noise_comp, sep, sep_err, angle, '+\
                       'angle_err, snr, fpf, d_mag')
