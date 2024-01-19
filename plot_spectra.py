@@ -6,7 +6,7 @@ import pandas as pd
 
 
 ## Settings ##
-fit_model = True      #fit host spectrum to match model
+fit_model = False      #fit host spectrum to match model
 plot_models = True    #plot range of model spectra to compare to companion
 plot_host = True      #plot host star spectrum
 fit_companion = False  #scale models to value of companion when plotting
@@ -18,6 +18,8 @@ residuals = False      #use data from measuring after subtraction
 temp_range = range(45, 9, -5) #range of temperatures to plot models
 #temp_range = range(60, 3, -1) #all models for best fitting
 #temp_range = []
+
+temp_range = [48] + list(temp_range)
 
 plt.rcParams.update({'font.size': 15})
 

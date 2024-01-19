@@ -17,8 +17,8 @@ from scipy.interpolate import interp2d
 
 
 
-folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/2023-06-15-2/"
-angle = 0.
+folder = "D:/Zach/Documents/TUDelft/MSc/Thesis/YSES_IFU/2nd_epoch/2023-05-30-2/products/"
+angle = 295.
 radius = 0.035
 scale = 1.73 / 290
 mag = 7.
@@ -111,91 +111,94 @@ pipeline.set_attribute(data_tag='science_derot',
                        attr_value=np.array([0.]),
                        static=False)
 
+#Perform SDI
+
+
 
 ## Load PSF ##
-module = FitsReadingModule(name_in='readpsf',
-                            image_tag='psf',
-                            filenames=[folder+'psf_cube.fits'],
-                            input_dir=None,
-                            ifs_data=True)
-pipeline.add_module(module)
-pipeline.run_module('readpsf')
+# module = FitsReadingModule(name_in='readpsf',
+#                             image_tag='psf',
+#                             filenames=[folder+'psf_cube.fits'],
+#                             input_dir=None,
+#                             ifs_data=True)
+# pipeline.add_module(module)
+# pipeline.run_module('readpsf')
 
-module = ParangReadingModule(name_in='parangpsf',
-                              data_tag='psf',
-                              file_name=folder+'psf_derot.fits')
-pipeline.add_module(module)
-pipeline.run_module('parangpsf')
+# module = ParangReadingModule(name_in='parangpsf',
+#                               data_tag='psf',
+#                               file_name=folder+'psf_derot.fits')
+# pipeline.add_module(module)
+# pipeline.run_module('parangpsf')
 
-module = WavelengthReadingModule(name_in='wavelengthpsf',
-                                  data_tag='psf',
-                                  file_name=folder+'wavelength.fits')
-pipeline.add_module(module)
-pipeline.run_module('wavelengthpsf')
-
-
-## Prepare PSF for injection ##
-module = RemoveFramesModule(name_in='slice_psf', 
-                            image_in_tag='psf', 
-                            selected_out_tag='other_psf', 
-                            removed_out_tag='psf_slice', 
-                            frames=[20])
-pipeline.add_module(module)
-pipeline.run_module('slice_psf')
-
-module = PSFpreparationModule(name_in='maskpsf', 
-                              image_in_tag='psf_slice', 
-                              image_out_tag='psf_masked',
-                              cent_size=None,
-                              edge_size=radius)
-pipeline.add_module(module)
-pipeline.run_module('maskpsf')
-
-module = AddLinesModule(name_in='pad', 
-                        image_in_tag='psf_masked', 
-                        image_out_tag='psf_pad', 
-                        lines=(105,105,105,105))
-pipeline.add_module(module)
-pipeline.run_module('pad')
-
-module = ReshapeModule(name_in='reshape_psf', 
-                       image_in_tag='psf_pad', 
-                       image_out_tag='planet', 
-                       shape=(1,1,290,290))
-pipeline.add_module(module)
-pipeline.run_module('reshape_psf')
+# module = WavelengthReadingModule(name_in='wavelengthpsf',
+#                                   data_tag='psf',
+#                                   file_name=folder+'wavelength.fits')
+# pipeline.add_module(module)
+# pipeline.run_module('wavelengthpsf')
 
 
-#inject two fake planets
-module = FakePlanetModule(name_in='fake1',
-                          image_in_tag='science_derot', 
-                          psf_in_tag='planet', 
-                          image_out_tag='injected1', 
-                          position=(sep1,0.), 
-                          magnitude=mag)
-pipeline.add_module(module)
-pipeline.run_module('fake1')
+# ## Prepare PSF for injection ##
+# module = RemoveFramesModule(name_in='slice_psf', 
+#                             image_in_tag='psf', 
+#                             selected_out_tag='other_psf', 
+#                             removed_out_tag='psf_slice', 
+#                             frames=[20])
+# pipeline.add_module(module)
+# pipeline.run_module('slice_psf')
 
-module = FakePlanetModule(name_in='fake2',
-                          image_in_tag='injected1', 
-                          psf_in_tag='planet', 
-                          image_out_tag='injected2', 
-                          position=(sep2,0.), 
-                          magnitude=mag)
-pipeline.add_module(module)
-pipeline.run_module('fake2')
+# module = PSFpreparationModule(name_in='maskpsf', 
+#                               image_in_tag='psf_slice', 
+#                               image_out_tag='psf_masked',
+#                               cent_size=None,
+#                               edge_size=radius)
+# pipeline.add_module(module)
+# pipeline.run_module('maskpsf')
+
+# module = AddLinesModule(name_in='pad', 
+#                         image_in_tag='psf_masked', 
+#                         image_out_tag='psf_pad', 
+#                         lines=(105,105,105,105))
+# pipeline.add_module(module)
+# pipeline.run_module('pad')
+
+# module = ReshapeModule(name_in='reshape_psf', 
+#                        image_in_tag='psf_pad', 
+#                        image_out_tag='planet', 
+#                        shape=(1,1,290,290))
+# pipeline.add_module(module)
+# pipeline.run_module('reshape_psf')
+
+
+# #inject two fake planets
+# module = FakePlanetModule(name_in='fake1',
+#                           image_in_tag='science_derot', 
+#                           psf_in_tag='planet', 
+#                           image_out_tag='injected1', 
+#                           position=(sep1,0.), 
+#                           magnitude=mag)
+# pipeline.add_module(module)
+# pipeline.run_module('fake1')
+
+# module = FakePlanetModule(name_in='fake2',
+#                           image_in_tag='injected1', 
+#                           psf_in_tag='planet', 
+#                           image_out_tag='injected2', 
+#                           position=(sep2,0.), 
+#                           magnitude=mag)
+# pipeline.add_module(module)
+# pipeline.run_module('fake2')
 
 
 
 #grab data
-raw = pipeline.get_data('injected2')
+raw = pipeline.get_data('science_derot')
 raw = raw.reshape((39,290,290))
 
 #plt.imshow(raw[20])
 
 
 #Rescale image
-wl = pipeline.get_attribute(data_tag='injected2', 
+wl = pipeline.get_attribute(data_tag='science_derot', 
                             attr_name='WAVELENGTH',
                             static=False)
 x_coords = np.linspace(min(wl),max(wl),39)
@@ -204,11 +207,24 @@ scales = scaling_factors(x_coords)
 scaled = sdi_scaling(raw, scales)
 
 
+#Take median
+med = np.median(scaled, axis=0)
+
+#subtract
+subtracted = scaled - med
+
+#rescale
+rescaled = sdi_scaling(subtracted, 1/scales, reverse=True)
+
+
 #slice
 x = int(290/2)
 
 lam_y = raw[:,:,x]
 lam_y_scaled = scaled[:,:,x]
+
+lam_y_sub = subtracted[:,:,x]
+lam_y_rescale = rescaled[:,:,x]
 
 #lam_y[:,x-25:x+25] = np.zeros((39,50))
 #lam_y_scaled[:,x-25:x+25] = np.zeros((39,50))
@@ -223,17 +239,46 @@ Z = f(y, x_coords)
 f_scaled = interp2d(y, wl, lam_y_scaled)
 Z_scaled = f_scaled(y, x_coords)
 
-#plot
-fig, (ax1, ax2) = plt.subplots(2,1, sharex=False, constrained_layout=True)
-ax1.imshow(Z, extent=[min(y),max(y),min(wl),max(wl)], origin="lower", aspect=1/700,
-           norm=colors.Normalize(vmin=None, vmax=np.max(Z)*0.5, clip=True))
-ax2.imshow(Z_scaled, extent=[min(y),max(y),min(wl),max(wl)], origin="lower", aspect=1/700,
-           norm=colors.Normalize(vmin=None, vmax=np.max(Z_scaled)*0.5, clip=True))
-#plt.subplots_adjust(wspace=0)
+f_sub = interp2d(y, wl, lam_y_sub)
+Z_sub = f_sub(y, x_coords)
 
-ax1.set_title('Before scaling')
-ax2.set_title('After scaling')
+f_rescale = interp2d(y, wl, lam_y_rescale)
+Z_rescale = f_rescale(y, x_coords)
+
+#plot
+norm = colors.Normalize(vmin=np.quantile(Z, 0.01), 
+                        vmax=np.quantile(Z, 0.99), 
+                        clip=True)
+
+norm_sub = colors.Normalize(vmin=np.quantile(Z_sub, 0.01), 
+                            vmax=np.quantile(Z_sub, 0.99), 
+                            clip=True)
+
+fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, sharex=False, constrained_layout=True)
+img = ax1.imshow(Z, extent=[min(y),max(y),min(wl),max(wl)], origin="lower", aspect=1/1000,
+           norm=norm)
+ax2.imshow(Z_scaled, extent=[min(y),max(y),min(wl),max(wl)], origin="lower", aspect=1/1000,
+           norm=norm)
+
+ax1.set_title('Reduced Image')
+ax2.set_title('Scaled by Wavelength')
 ax1.set_ylabel(r'$\lambda$ $[\mu m]$')
 ax2.set_ylabel(r'$\lambda$ $[\mu m]$')
 ax1.set_xlabel(r'Separation [arcsec]')
 ax2.set_xlabel(r'$\frac{\lambda}{D}$')
+cb = plt.colorbar(img, ax=(ax1,ax2), location='right', shrink=0.5)
+cb.set_label('Flux [counts]')
+
+img = ax3.imshow(Z_sub, extent=[min(y),max(y),min(wl),max(wl)], origin="lower", 
+                 aspect=1/1000, norm=norm_sub)
+ax4.imshow(Z_rescale, extent=[min(y),max(y),min(wl),max(wl)], origin="lower", 
+           aspect=1/1000, norm=norm_sub)
+
+ax3.set_title('After Subtraction')
+ax4.set_title('Rescaled to Original Size')
+ax3.set_ylabel(r'$\lambda$ $[\mu m]$')
+ax4.set_ylabel(r'$\lambda$ $[\mu m]$')
+ax4.set_xlabel(r'Separation [arcsec]')
+ax3.set_xlabel(r'$\frac{\lambda}{D}$')
+cb = plt.colorbar(img, ax=(ax3,ax4), location='right', shrink=0.5)
+cb.set_label('Flux [counts]')

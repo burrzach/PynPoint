@@ -21,18 +21,19 @@ pipeline = Pypeline(working_place_in=folder,
 star_props = pd.read_csv(props_file, index_col=0)
 star_props = star_props.drop_duplicates(subset='2MASS', keep='last')
 observations = np.array(star_props['obs'])
-# observations = np.array(["2023-05-27",    #just systems with candidates
-#                          "2023-05-30-2", 
-#                          "2023-06-15-1",
-#                          "2023-07-26-1",
-#                          "2023-08-07-2"
-#                          ])
+observations = np.array(["2023-05-27",    #just systems with candidates
+                         #"2023-05-30-2", 
+                         "2023-06-15-1",
+                         "2023-07-26-1",
+                         "2023-08-07-2"
+                         ])
 
-companion_list = {"2023-05-27":  2, #how many companions are in each system
-                  "2023-05-30-2":1, 
-                  "2023-06-15-1":1,
-                  "2023-07-26-1":1,
-                  "2023-08-07-2":2}
+companion_list = {#"2023-05-27":  2, #how many companions are in each system
+                  #"2023-05-30-2":1, 
+                  #"2023-06-15-1":1,
+                  #"2023-07-26-1":1,
+                  #"2023-08-07-2":2
+                  }
 radius = 0.035
 bi_radius = 0.09
 scale = 1.73 / 290
@@ -91,7 +92,10 @@ for ob in observations:
     #plot raw
     size = scale * raw.shape[-1]/2.
     
-    img = ag[0].imshow(raw[0], origin='lower', extent=[size, -size, -size, size])
+    img = ag[0].imshow(raw[0], origin='lower', extent=[size, -size, -size, size],
+                       norm=colors.Normalize(vmin=np.quantile(raw[0],0.0), 
+                                             vmax=np.quantile(raw[0],1.), 
+                                             clip=True))
     if ob in companion_list.keys():
         cb = plt.colorbar(img, ax=[ag[0], ag[2]], location='left', shrink=0.5)
     else:
@@ -105,8 +109,10 @@ for ob in observations:
         cb = plt.colorbar(img, ax=[ag[1], ag[3]], location='right', shrink=0.5)
     else:
         img = ag[1].imshow(resid[0], origin='lower', extent=[size, -size, -size, size],
-                           norm=colors.Normalize(vmin=None, vmax=np.max(resid[0])*0.8, clip=True))
-        cb = plt.colorbar(img, ax=ag[1], location='right', extend='max', shrink=0.5)
+                           norm=colors.Normalize(vmin=np.quantile(resid[0],0.0), 
+                                                 vmax=np.quantile(resid[0],1.), 
+                                                 clip=True))
+        cb = plt.colorbar(img, ax=ag[1], location='right', shrink=0.5)
     cb.set_label('Flux [counts]', size=15.)
     
     if ob in companion_list.keys():

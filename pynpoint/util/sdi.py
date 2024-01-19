@@ -11,7 +11,8 @@ from pynpoint.util.image import scale_image, shift_image
 
 @typechecked
 def sdi_scaling(image_in: np.ndarray,
-                scaling: np.ndarray) -> np.ndarray:
+                scaling: np.ndarray,
+                reverse: bool = False) -> np.ndarray:
 
     """
     Function to rescale the images by their wavelength ratios.
@@ -39,6 +40,8 @@ def sdi_scaling(image_in: np.ndarray,
         swaps = scale_image(image_in[i, ], scaling[i], scaling[i])
 
         npix_del = swaps.shape[-1] - image_out.shape[-1]
+        if reverse:
+            npix_del = -npix_del
 
         if npix_del == 0:
             image_out[i, ] = swaps
@@ -51,8 +54,11 @@ def sdi_scaling(image_in: np.ndarray,
             else:
                 npix_del_a = int((npix_del-1)/2)
                 npix_del_b = int((npix_del+1)/2)
-
-            image_out[i, ] = swaps[npix_del_a:-npix_del_b, npix_del_a:-npix_del_b]
+            
+            if reverse == False:
+                image_out[i, ] = swaps[npix_del_a:-npix_del_b, npix_del_a:-npix_del_b]
+            else:
+                image_out[i, npix_del_a:-npix_del_b, npix_del_a:-npix_del_b] = swaps
 
         if npix_del % 2 == 1:
             image_out[i, ] = shift_image(image_out[i, ], (-0.5, -0.5), interpolation='spline')

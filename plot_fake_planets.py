@@ -269,8 +269,8 @@ for ang in angle_space:
     for sep in sep_space:
         sep_pix = sep / scale
         y_pix, x_pix = polar_to_cartesian(raw, sep_pix, ang)
-        y.append(y_pix*scale)
-        x.append(x_pix*scale)
+        y.append((y_pix - 290/2) * scale)
+        x.append((x_pix - 290/2) * scale)
 
 z_pre = pre_map.flatten('F')
 z_post = post_map.flatten('F')
@@ -283,8 +283,27 @@ y_coords = np.linspace(-1.73/2, 1.73/2, 290)
 pre_map_interp = f_pre(y_coords, y_coords)
 post_map_interp = f_post(y_coords, y_coords)
 
-plt.figure()
-plt.imshow(pre_map_interp, extent=[-1.73/2, 1.73/2, -1.73/2, 1.73/2])
+# plt.figure()
+# plt.imshow(pre_map_interp, extent=[-1.73/2, 1.73/2, -1.73/2, 1.73/2])
+
+# plt.figure()
+# plt.imshow(post_map_interp, extent=[-1.73/2, 1.73/2, -1.73/2, 1.73/2])
+
+theta_space = np.linspace(0., 2*np.pi, 7)
+radius_space = np.linspace(sep_space[0]-0.025, sep_space[-1]+0.025, len(sep_space)+1)
+tr, rr = np.meshgrid(theta_space, radius_space)
+
+xx = rr * np.cos(tr)
+yy = rr * np.sin(tr)
 
 plt.figure()
-plt.imshow(post_map_interp, extent=[-1.73/2, 1.73/2, -1.73/2, 1.73/2])
+plt.pcolormesh(xx,yy, 1/post_map)
+
+
+#%%
+#2D scatter
+plt.figure()
+plt.scatter(x,y, s=50)#, c=z_post)
+
+plt.xlabel('RA [arcsec]')
+plt.ylabel('Dec [arcsec]')
