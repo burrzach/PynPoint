@@ -6,7 +6,7 @@ import pandas as pd
 
 
 ## Settings ##
-fit_model = False      #fit host spectrum to match model
+fit_model = True      #fit host spectrum to match model
 plot_models = True    #plot range of model spectra to compare to companion
 plot_host = True      #plot host star spectrum
 fit_companion = False  #scale models to value of companion when plotting
@@ -15,17 +15,17 @@ calc_distance = False  #calculate true distance based off best fit temperature
 binary_scaling = False #halve brightness (for binary companions)
 residuals = False      #use data from measuring after subtraction
 
-temp_range = range(45, 9, -5) #range of temperatures to plot models
+temp_range = range(40, 24, -5) #range of temperatures to plot models
 #temp_range = range(60, 3, -1) #all models for best fitting
 #temp_range = []
 
-temp_range = [48] + list(temp_range)
+#temp_range = [48] + list(temp_range)
 
 plt.rcParams.update({'font.size': 15})
 
 obs_list = [#"2023-05-27",    #which observations to plot
-            "2023-05-30-2", 
-            #"2023-06-15-1",
+            #"2023-05-30-2", 
+            "2023-06-15-1",
             #"2023-07-26-1",
             #"2023-08-07-2"
             ]
@@ -188,7 +188,7 @@ for obs in obs_list:
     plt.yscale('log')
     if plot_host:
         plt.errorbar(wl, star_spectra, yerr=star_error, marker='*', 
-                     label='host star (T_eff='+str(host_temp[obs]*100)+')')
+                     label='host star (T_eff='+str(host_temp[obs]*100)+'K)')
     
     #plot first companion
     comp = data[1:,4] - data[1:,6]
@@ -215,8 +215,8 @@ for obs in obs_list:
         plt.figure('snr'+obs)
         plt.plot(wl, snr, marker='o', label='companion 1', color='orange')
     else:
-        #plt.errorbar(wl, comp, yerr=error, marker='s', label='companion (combined brightness)', color='orange', alpha=0.5) #!!!
-        plt.errorbar(wl, comp, yerr=error, marker='o', label='companion', color='orange')
+        plt.errorbar(wl, comp, yerr=error, marker='s', label='companion (combined brightness)', color='orange', alpha=0.5) #!!!
+        #plt.errorbar(wl, comp, yerr=error, marker='o', label='companion', color='orange')
         plt.figure('snr'+obs)
         plt.plot(wl, snr, marker='o', label='companion', color='orange')
     
@@ -286,7 +286,7 @@ for obs in obs_list:
     
     #repeat for each companion beyond the first
     comp1 = comp #save data on 1st companion first to allow comparing
-    for i in range(2, n_companions+1): #!!!
+    for i in range(1, n_companions+1): #!!!
         #load companion data
         comp_file = folder + obs + f"_companion{i}_" + "resid_"*residuals + "data.txt"
         data = np.genfromtxt(comp_file)
